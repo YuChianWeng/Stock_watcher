@@ -1,0 +1,67 @@
+/* 設計系統（design/）＋前端專用的補充樣式 */
+@import "../design/tokens.css";
+@import "../design/components.css";
+@import "../design/layout.css";
+
+#root{min-height:100vh}
+.top .ttl.top-sym{display:flex;align-items:center;gap:8px;justify-content:center;opacity:0;transition:opacity .15s;white-space:nowrap;overflow:hidden}
+.top .ttl.top-sym b{overflow:hidden;text-overflow:ellipsis}
+body.scrolled .top .ttl.top-sym{opacity:1}
+.top{transition:background .2s}
+.qrow{text-decoration:none}
+.qrow .ext{display:none}
+.qhead.hold-h{display:none}
+@media (min-width:1280px){
+  .ov-l .list-card .qrow.hold{grid-template-columns:minmax(0,1fr) 110px 110px 64px minmax(150px,auto)}
+  .ov-l .list-card .qrow .ext{display:block;text-align:right;font:500 13px/1.2 var(--f-m);font-variant-numeric:tabular-nums}
+  .ov-l .qhead.hold-h{display:grid;grid-template-columns:minmax(0,1fr) 110px 110px 64px minmax(150px,auto);text-align:right}
+  .ov-l .qhead.hold-h span:first-child{text-align:left}
+}
+.list-card .qrow{padding-left:12px;padding-right:12px}
+.card.list-card{padding-left:4px;padding-right:4px}
+.card.list-card .card-h{padding:0 12px}
+.card.flush.list-card{padding:0}
+.stk-list .qrow{min-height:60px}
+.stk-list .qrow .rt .px{font-size:14px}
+.stk-list .qrow .pill{min-width:64px;height:24px;font-size:12px}
+.drag{cursor:grab;touch-action:none;display:inline-grid;place-items:center;width:28px;height:40px;margin-left:-6px}
+.swipe{position:relative;overflow:hidden;border-bottom:1px solid var(--ln)}
+.swipe:last-child{border-bottom:0}
+.swipe > .qrow,.swipe > .al{border-bottom:0;background:var(--s1);position:relative;transition:transform .18s ease}
+.swipe-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;background:var(--cut-soft)}
+.swipe.dragging{opacity:.85;box-shadow:var(--glow);z-index:2}
+.card.flush > .swipe:first-child > *{border-top-left-radius:var(--r-l);border-top-right-radius:var(--r-l)}
+.al > a.ai{text-decoration:none}
+.ch-act{position:absolute;z-index:3}
+.ch-act[hidden]{display:none}
+.ch-msg{position:absolute;left:8px;bottom:26px;padding:4px 10px;border-radius:8px;background:var(--glass);border:1px solid var(--ln2);font-size:12px;color:var(--mu);pointer-events:none}
+.ch-top{min-height:24px;flex-wrap:wrap}
+.chart-card{overflow:hidden}
+.chart-card.fs{border-radius:0;border:0}
+.chart:focus-visible{outline:1px solid var(--ac-line);outline-offset:-1px}
+body.chart-fs .tabbar,body.chart-fs .top,body.chart-fs #banners{display:none}
+.fs .chart-main{height:auto;flex:1;min-height:0}
+.ptr{height:0;opacity:0;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ac);font-size:13px;transition:height .18s,opacity .18s}
+.ptr.busy .ic{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.steps{list-style:none;padding:0;margin:0;display:grid;gap:10px;text-align:left;width:100%}
+.steps li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--s2);border:1px solid var(--ln)}
+.steps .n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--ac-grad);color:var(--ac-ink);font:700 12px var(--f-m);flex:none}
+.perm .set-row{text-align:left}
+.form-actions{padding:10px 0;background:linear-gradient(transparent,var(--bg) 30%);z-index:5}
+.scrim .form-actions{background:linear-gradient(transparent,var(--s1) 30%)}
+.alert-form .rules .opt{align-items:flex-start}
+body.subpage .tabbar{display:none}
+body.subpage .main{padding-bottom:calc(24px + var(--sab))}
+body.ro [data-needs-online]{opacity:.4;pointer-events:none}
+.top .back span{max-width:6em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+a.set-row{text-decoration:none}
+.sheet-b .qrow{padding-left:4px;padding-right:4px}
+select.input{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--mu) 50%),linear-gradient(135deg,var(--mu) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.ev:hover{background:var(--ac-soft)}
+.toast{animation:tin .18s ease}
+@keyframes tin{from{opacity:0;transform:translate(-50%,8px)}}
+@media (min-width:960px){
+  .view-alert-new .narrow,.view-alert-edit .narrow{max-width:640px}
+}
+.al .al-t{flex-direction:column;align-items:flex-start;gap:1px}.al .al-n{font-weight:500;font-size:12px;color:var(--mu);max-width:100%}.al .al-r{font-weight:600}

@@ -1,0 +1,19 @@
+{
+  "name": "看盤",
+  "short_name": "看盤",
+  "description": "持倉、自選、大盤走勢與 K 線，到價警報推播",
+  "id": "/stocks/",
+  "start_url": "/stocks/?source=pwa",
+  "scope": "/stocks/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#05070D",
+  "theme_color": "#05070D",
+  "lang": "zh-Hant-TW",
+  "icons": [
+    { "src": "/stocks/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/stocks/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/stocks/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/stocks/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

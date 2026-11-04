@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>看盤</title>
+<meta name="description" content="看盤：持倉、自選、大盤走勢與 K 線，到價警報推播">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="看盤">
+<meta name="theme-color" content="#05070D" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F2F5FB" media="(prefers-color-scheme: light)">
+<link rel="manifest" href="/stocks/manifest.webmanifest">
+<link rel="icon" href="/stocks/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/stocks/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/stocks/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<script>try{var t=localStorage.getItem("sw-theme");if(t&&t!=="system")document.documentElement.dataset.theme=t;if(localStorage.getItem("sw-colors")==="intl_green_up")document.documentElement.dataset.colors="intl"}catch(e){}</script>
+<style>
+  /* 啟動畫面（JS 載入前） */
+  #boot{position:fixed;inset:0;display:grid;place-items:center;background:#05070D;z-index:100;transition:opacity .25s}
+  @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) #boot{background:#F2F5FB}}
+  :root[data-theme="light"] #boot{background:#F2F5FB}
+  #boot img{width:88px;height:88px;border-radius:20px;box-shadow:0 0 60px rgba(62,230,255,.25)}
+</style>
+</head>
+<body>
+<div id="boot" aria-hidden="true"><img src="/stocks/icon.svg" alt=""></div>
+<div id="root"></div>
+<noscript>看盤需要 JavaScript。</noscript>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

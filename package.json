@@ -1,0 +1,22 @@
+{
+  "name": "stock-watcher-web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "看盤 App 前端（/stocks），依 FRONTEND-CONTRACT v1.0 開發",
+  "scripts": {
+    "dev": "vite",
+    "dev:api": "vite --mode api",
+    "build": "tsc --noEmit && vite build",
+    "build:preview": "tsc --noEmit && vite build --mode preview && node scripts/inline-preview.mjs",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "icons": "node scripts/icons.mjs"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.3",
+    "vite": "^6.4.1",
+    "vitest": "^3.2.4"
+  }
+}
