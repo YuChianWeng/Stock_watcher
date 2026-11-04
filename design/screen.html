@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>看盤 設計稿畫面</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components.css">
+<link rel="stylesheet" href="layout.css">
+<style>
+  /* 設計稿模擬 iPhone 狀態列與底部手勢條 */
+  :root{--sat:var(--mock-sat,0px);--sab:var(--mock-sab,0px)}
+  .statusbar{position:fixed;top:0;left:0;right:0;height:var(--sat);z-index:99;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 8px;font:600 15px/1 var(--f-d);pointer-events:none}
+  .statusbar .isl{position:absolute;left:50%;top:11px;transform:translateX(-50%);width:120px;height:34px;border-radius:20px;background:#000}
+  .homebar{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:var(--tx);opacity:.5;z-index:99}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="mock-kit.js"></script>
+<script>
+const q = new URLSearchParams(location.search);
+document.documentElement.dataset.theme = q.get("theme") || "dark";
+if (q.get("colors")) document.documentElement.dataset.colors = q.get("colors");
+const phone = innerWidth < 600;
+if (phone && q.get("chrome") !== "0") { document.documentElement.style.setProperty("--mock-sat", "54px"); document.documentElement.style.setProperty("--mock-sab", "34px"); }
+const { ic, D, fmt, sgn, spark, pill, statusTag, qrow, idxCard, intradaySvg, klineSvg, subSvg } = MK;
+const S = q.get("s") || "overview";
+
+const NAV = [["home", "總覽", "overview"], ["star", "自選", "watch"], ["bell", "警報", "alerts"], ["gear", "設定", "settings"]];
+function shell(active, top, body, o = {}) {
+  const rail = `<nav class="rail" aria-label="主要導覽"><img class="logo" src="icon.svg" alt="看盤">${NAV.map(([i, t, k]) => `<a href="#" class="${k === active ? "on" : ""}" aria-label="${t}">${ic(i)}<span class="tip">${t}</span></a>`).join("")}<a href="#" aria-label="搜尋">${ic("search")}<span class="tip">搜尋</span></a><span class="fill"></span><a href="#" aria-label="通知紀錄">${ic("bell")}<span class="badge">3</span><span class="tip">通知紀錄</span></a></nav>`;
+  const tab = o.noTab ? "" : `<nav class="tabbar" aria-label="分頁">${NAV.map(([i, t, k]) => `<a href="#" class="${k === active ? "on" : ""}">${ic(i)}<span>${t}</span>${k === "alerts" ? '<span class="badge">3</span>' : ""}</a>`).join("")}<a href="#">${ic("search")}<span>搜尋</span></a></nav>`;
+  return `${phone && q.get("chrome") !== "0" ? `<div class="statusbar"><span>10:41</span><span class="isl"></span><span>100%</span></div>` : ""}<div class="app">${rail}<main class="main"><header class="top"><div class="top-in">${top}</div></header><div class="wrapc">${body}</div></main></div>${tab}${phone && q.get("chrome") !== "0" ? '<div class="homebar"></div>' : ""}`;
+}
+const bell = (n = 3) => `<button class="ibtn" aria-label="通知紀錄，${n} 則未讀">${ic("bell")}${n ? `<span class="badge">${n}</span>` : ""}</button>`;
+const mkt = (k = "open") => ({
+  open: `<div class="mkt open"><span class="dot"></span><b>盤中</b><span class="mu">13:30 收盤</span><span class="grow"></span><span class="tag live">即時</span><span class="num mu xs">10:41:05</span></div>`,
+  pre_open: `<div class="mkt pre_open"><span class="dot"></span><b>盤前試撮</b><span class="mu">09:00 開盤</span><span class="grow"></span><span class="num mu xs">08:47:12</span></div>`,
+  closed: `<div class="mkt closed"><span class="dot"></span><b>休市 · 春節</b><span class="mu">下次開市 02/03（二）09:00</span><span class="grow"></span><span class="tag closed">收盤 <span class="num">01/24</span></span></div>`,
+})[k];
+
+function holdingsCard() {
+  return `<section class="card"><div class="card-h"><h2 class="h2">持倉 <span class="tag ghost num">3</span></h2><div class="seg" role="group" aria-label="排序"><button aria-pressed="true">漲跌</button><button>損益</button><button>市值</button><button>代號</button></div></div>
+    <div class="qlist">
+      ${qrow(D.TS01, { hold: "3 張", pnl: ["up", "+31,500 · +11.67%"] })}
+      ${qrow(D.TE01, { hold: "1 張 234 股", pnl: ["up", "+1,234 · +0.67%"] })}
+      ${qrow(D.TS02, { hold: "5 張", pnl: ["dn", "−21,000 · −15.00%"], st: "stale" })}
+    </div></section>`;
+}
+function summaryCard() {
+  return `<section class="card hl"><span class="corner tl"></span><span class="corner br"></span>
+    <div class="card-h"><h2 class="h2">持倉摘要</h2><div class="seg" role="group" aria-label="損益基準"><button aria-pressed="true">毛額</button><button>扣稅費</button></div></div>
+    <div class="kpis">
+      <div class="kpi lead"><div class="lb">總市值</div><div class="v num">NT$ 509,451</div></div>
+      <div class="kpi"><div class="lb">今日損益</div><div class="v num up">+8,075</div><div class="chg up sm">+1.61%</div></div>
+      <div class="kpi"><div class="lb">未實現損益</div><div class="v num up">+11,734</div><div class="chg up sm">+2.36%</div></div>
+    </div>
+    <div class="hint wa" style="margin-top:12px">${ic("clock", "s")}<span>1 檔報價過期（範例金融控股），損益以最後價格估算</span></div></section>`;
+}
+function watchCard() {
+  return `<section class="card"><div class="card-h"><h2 class="h2">自選</h2><button class="ibtn bare" aria-label="管理自選">${ic("edit")}</button></div>
+    <div class="seg" style="margin-bottom:8px"><button aria-pressed="true">觀察中</button><button>ETF</button><button>短線</button></div>
+    <div class="qlist">${qrow(D.TS04)}${qrow(D.TS03, { st: "delayed" })}${qrow(D.TS05)}${qrow(D.TE02)}</div></section>`;
+}
+const R = {};
+R.overview = () => shell("overview", `<div class="ttl"><p class="eyebrow">看盤 · QUANT GRID</p><h1 class="h1">總覽</h1></div><button class="ibtn" aria-label="搜尋">${ic("search")}</button>${bell()}`,
+  `<div class="ov"><div class="full">${mkt(q.get("mkt") || "open")}</div>
+   <div class="ov-l"><div class="ov-idx">${idxCard(D.TAIEX)}${idxCard(D.TPEX)}</div>${summaryCard()}${holdingsCard()}</div>
+   <div class="ov-r">${watchCard()}</div></div>`);
+
+R["overview-empty"] = () => shell("overview", `<div class="ttl"><h1 class="h1">總覽</h1></div>${bell(0)}`,
+  `<div class="ov"><div class="full">${mkt("pre_open")}</div><div class="ov-l"><div class="ov-idx">${idxCard(D.TAIEX, "closed")}<div class="card idx"><div class="nm">櫃買指數（示範）</div><div class="val mu2">—</div><div class="xs mu"><span class="tag cut">未開通</span> 資料來源尚未開通</div></div></div>
+  <section class="card"><div class="empty"><div class="ei">${ic("brief", "l")}</div><h2 class="h2">還沒有持倉資料</h2><p class="sm" style="margin:0;max-width:300px">持倉由後端從成交信件匯入，匯入後會出現在這裡。先把想看的股票加入自選吧。</p><button class="btn p">${ic("search", "s")}搜尋股票</button></div></section></div>
+  <div class="ov-r"><section class="card"><div class="empty"><div class="ei">${ic("star", "l")}</div><h2 class="h2">自選清單是空的</h2><p class="sm" style="margin:0">搜尋代號或名稱，例如「TS01」或「示範」。</p><button class="btn o">${ic("plus", "s")}加入自選</button></div></section></div></div>`);
+
+R.loading = () => shell("overview", `<div class="ttl"><h1 class="h1">總覽</h1></div>${bell(0)}`,
+  `<div class="ov"><div class="full"><div class="sk" style="height:40px;border-radius:12px"></div></div><div class="ov-l"><div class="ov-idx"><div class="card"><div class="sk" style="height:14px;width:60%"></div><div class="sk" style="height:28px;width:80%;margin-top:10px"></div><div class="sk" style="height:36px;margin-top:14px"></div></div><div class="card"><div class="sk" style="height:14px;width:60%"></div><div class="sk" style="height:28px;width:80%;margin-top:10px"></div><div class="sk" style="height:36px;margin-top:14px"></div></div></div>
+  <div class="card"><div class="sk" style="height:16px;width:30%"></div><div class="sk" style="height:34px;width:70%;margin-top:14px"></div><div class="kpis" style="margin-top:14px"><div class="sk" style="height:40px"></div><div class="sk" style="height:40px"></div></div></div>
+  <div class="card">${[1, 2, 3].map(() => `<div class="row" style="padding:12px 0"><div class="grow"><div class="sk" style="height:14px;width:50%"></div><div class="sk" style="height:10px;width:30%;margin-top:8px"></div></div><div class="sk" style="width:64px;height:24px"></div><div class="sk" style="width:76px;height:28px"></div></div>`).join("")}</div></div><div class="ov-r"></div></div>`);
+
+R.offline = () => shell("overview", `<div class="ttl"><h1 class="h1">總覽</h1></div>${bell()}`,
+  `<div class="stack"><div class="banner cut">${ic("wifioff", "s")}<span class="grow"><b>離線</b> · 資料更新於 <span class="num">10:38</span>。新增警報、編輯自選暫時停用。</span></div>
+  <div class="banner ac">${ic("refresh", "s")}<span class="grow">有新版本，重新開啟 App 套用</span><button class="btn sm o">重新開啟</button></div>
+  <div class="ov-idx">${idxCard(D.TAIEX, "stale")}${idxCard(D.TPEX, "stale")}</div>${holdingsCard()}</div>`);
+
+function stockTop() { return `<button class="back">${ic("chevl")}總覽</button><div class="ttl"></div><button class="ibtn on" aria-label="已在自選">${ic("star")}</button><button class="ibtn" aria-label="設警報">${ic("bell")}</button>`; }
+function stockHead(st = "live") {
+  return `<div class="stk-head ${st === "stale" ? "is-stale" : ""}"><div class="row"><h1 class="h1 trunc">示範半導體</h1><span class="code">TS01 · 上市</span></div>
+  <div class="pxl"><span class="huge px up">100.50</span><span class="chg up">+2.50</span><span class="pill up">▲+2.55%</span></div>
+  <div class="row xs mu">${statusTag(st)}<span class="num">10:41:05</span><span>·</span><span>漲停 <span class="num">107.50</span></span><span>跌停 <span class="num">88.20</span></span></div></div>`;
+}
+function periodBar(on = "分時") { return `<div class="between"><div class="seg" role="group" aria-label="週期">${["分時", "日", "週", "月"].map((p) => `<button aria-pressed="${p === on}">${p}</button>`).join("")}</div><div class="row"><button class="ibtn bare" aria-label="疊加層">${ic("layers")}</button><button class="ibtn bare" aria-label="全螢幕">${ic("expand")}</button></div></div>`; }
+function chartCard(kind = "intraday", o = {}) {
+  const legend = kind === "intraday" ? `<div class="legend"><span><i style="background:var(--ch-line)"></i>價格</span><span><i style="background:var(--ch-prev)"></i>昨收</span><span><i style="background:var(--ch-cost)"></i>成本 90.00</span><span><i style="background:var(--ch-alert)"></i>警報</span></div>` : `<div class="legend"><span><i style="background:var(--ma5)"></i>MA5 <span class="num">99.12</span></span><span><i style="background:var(--ma20)"></i>MA20 <span class="num">95.80</span></span><span><i style="background:var(--ma60)"></i>MA60 <span class="num">91.04</span></span></div>`;
+  const tip = o.tip ? (kind === "intraday" ? `<div class="ch-tip" style="left:auto;right:60px"><div class="r"><span>時間</span><span>10:12</span></div><div class="r"><span>價格</span><span class="chg up no-glyph">99.80</span></div><div class="r"><span>漲跌</span><span class="chg up">+1.80 +1.84%</span></div><div class="r"><span>累計量</span><span>8,214 張</span></div></div>` : `<div class="ch-tip"><div class="r"><span>日期</span><span>2026/10/21</span></div><div class="r"><span>開</span><span>96.50</span></div><div class="r"><span>高</span><span>98.00</span></div><div class="r"><span>低</span><span>95.50</span></div><div class="r"><span>收</span><span class="chg up no-glyph">97.50</span></div><div class="r"><span>漲跌</span><span class="chg up">+1.00 +1.04%</span></div><div class="r"><span>量</span><span>21,480 張</span></div><div class="r"><span>MA20</span><span>94.20</span></div></div>`) : "";
+  const note = o.note || "";
+  const body = kind === "intraday" ? intradaySvg({ w: phone ? 380 : 760, h: phone ? 300 : 440, cost: true, alert: true, limits: true, cross: o.tip ? 72 : null, from: o.from, gap: o.gap }) : klineSvg({ w: phone ? 380 : 760, h: phone ? 300 : 440, n: phone ? 48 : 72, cost: true, alert: true, marks: true, cross: o.tip ? (phone ? 34 : 50) : null });
+  const sub = kind === "kline" ? `<div class="between" style="padding:6px 6px 0"><div class="seg">${["量", "KD", "MACD", "RSI"].map((p) => `<button aria-pressed="${p === "KD"}">${p}</button>`).join("")}</div><span class="legend"><span><i style="background:var(--ind1)"></i>K 62.4</span><span><i style="background:var(--ind2)"></i>D 55.1</span></span></div><div style="height:76px">${subSvg({ w: phone ? 380 : 760 })}</div>` : "";
+  return `<section class="card chart-card">${note}<div style="padding:4px 6px 6px">${legend}</div><div class="chart chart-main">${body}${tip}${o.press ? `<div class="ch-tip" style="top:auto;bottom:90px;left:50%;transform:translateX(-50%);min-width:0;pointer-events:auto;padding:6px"><button class="btn sm p">${ic("bell", "s")}在 105.00 設警報</button></div>` : ""}</div>${sub}</section>`;
+}
+function quoteCard(idx) {
+  const rows = idx ? [["開", "9,962.10"], ["高", "10,021.55"], ["低", "9,948.30"], ["昨收", "9,950.00"], ["成交金額", "2,461 億"], ["五日均額", "2,210 億"], ["52 週高", "10,488.20"], ["52 週低", "8,812.40"]] : [["開", "98.50"], ["高", "101.00"], ["低", "98.00"], ["昨收", "98.00"], ["漲停", "107.50"], ["跌停", "88.20"], ["成交量", "32,145 張"], ["成交金額", "32.1 億"], ["五日均量", "18,300 張"], ["52 週高低", "112.0 / 71.5"]];
+  return `<section class="card"><div class="card-h"><h2 class="h2">報價資訊</h2><span class="xs mu">來源 KGI</span></div><dl class="dl">${rows.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join("")}</dl></section>`;
+}
+function posCard() {
+  return `<section class="card hl"><div class="card-h"><h2 class="h2">我的部位</h2><span class="tag acc">占比 59.2%</span></div>
+  <div class="kpis"><div class="kpi"><div class="lb">未實現損益</div><div class="v num up">+31,500</div><div class="chg up sm">+11.67%</div></div><div class="kpi"><div class="lb">今日損益</div><div class="v num up">+7,500</div><div class="chg up sm">+2.55%</div></div></div>
+  <dl class="dl" style="margin-top:8px"><div><dt>持有</dt><dd>3 張</dd></div><div><dt>平均成本</dt><dd>90.00</dd></div><div><dt>市值</dt><dd>301,500</dd></div><div><dt>首次買進</dt><dd>2025/03/12</dd></div></dl>
+  <button class="link" style="margin-top:8px">成交紀錄 3 筆 ${ic("chevr", "s")}</button></section>`;
+}
+function alertsMini() {
+  return `<section class="card"><div class="card-h"><h2 class="h2">警報 <span class="tag ghost num">2</span></h2><button class="btn sm o">${ic("plus", "s")}新增</button></div>
+  <div class="al active" style="padding:10px 0"><div class="ai">${ic("target")}</div><div style="min-width:0"><div class="t">價格 ≥ 105.00</div><div class="d"><span class="dist">距離 +4.48%</span><span>每次 · 冷卻 30 分</span></div></div><label class="tg"><input type="checkbox" checked aria-label="啟用"><span></span></label></div>
+  <div class="al paused" style="padding:10px 0"><div class="ai">${ic("pct")}</div><div style="min-width:0"><div class="t">持倉損益 ≥ +20%</div><div class="d"><span>已暫停</span><span>一次</span></div></div><label class="tg"><input type="checkbox" aria-label="啟用"><span></span></label></div></section>`;
+}
+function listCol() {
+  return `<aside class="stk-list card flush"><div style="padding:12px 12px 0"><div class="seg wide"><button aria-pressed="true">持倉</button><button>自選</button></div></div><div class="qlist list-card" style="padding:4px 0">${qrow(D.TS01, { sel: true, hold: "3 張" })}${qrow(D.TE01, { hold: "1 張 234 股" })}${qrow(D.TS02, { hold: "5 張", st: "stale" })}${qrow(D.TS04)}${qrow(D.TS03)}${qrow(D.TS05)}${qrow(D.TE02)}</div></aside>`;
+}
+R.stock = () => shell("overview", stockTop(), `<div class="stk">${listCol()}<div class="stk-mid">${stockHead()}${periodBar("分時")}${chartCard("intraday", { tip: q.get("tip") === "1", press: q.get("press") === "1" })}</div><div class="stk-side">${posCard()}${quoteCard()}${alertsMini()}</div></div>`, { noTab: true });
+R["stock-k"] = () => shell("overview", stockTop(), `<div class="stk">${listCol()}<div class="stk-mid">${stockHead()}${periodBar("日")}${chartCard("kline", { tip: true })}</div><div class="stk-side">${posCard()}${quoteCard()}${alertsMini()}</div></div>`, { noTab: true });
+R["stock-gap"] = () => shell("overview", stockTop(), `<div class="stk">${listCol()}<div class="stk-mid">${stockHead("delayed")}${periodBar("分時")}${chartCard("intraday", { from: 102, gap: [160, 185], note: `<div class="ch-note" style="padding:6px">${ic("info", "s")}分時線自 10:42 起 · 11:40–12:05 資料中斷（不補線）</div>` })}</div><div class="stk-side">${quoteCard()}</div></div>`, { noTab: true });
+R["stock-stale"] = () => shell("overview", stockTop(), `<div class="stk">${listCol()}<div class="stk-mid"><div class="banner cut">${ic("cut", "s")}<span class="grow">行情來源中斷，顯示 <span class="num">10:35</span> 的最後資料，警報暫停判斷</span><button class="btn sm">重試</button></div>${stockHead("stale")}${periodBar("分時")}${chartCard("intraday", {})}</div><div class="stk-side">${quoteCard()}</div></div>`, { noTab: true });
+R.index = () => shell("overview", `<button class="back">${ic("chevl")}總覽</button><div class="ttl"></div>${bell()}`, `<div class="stk"><div class="stk-mid"><div class="stk-head"><div class="row"><h1 class="h1">加權指數（示範）</h1><span class="code">TAIEX</span></div><div class="pxl"><span class="huge px up">10,000.00</span><span class="chg up">+50.00</span><span class="pill up">▲+0.50%</span></div><div class="row xs mu"><span class="tag live">即時</span><span class="num">10:41:00</span><span>· 每分鐘更新</span></div></div>${periodBar("日")}${chartCard("kline", {})}</div><div class="stk-side">${quoteCard(true)}</div></div>`, { noTab: true });
+
+R.landscape = () => `<div class="fs"><div class="between"><div class="row"><button class="ibtn bare">${ic("x")}</button><b>示範半導體</b><span class="code">TS01</span><span class="px up">100.50</span><span class="pill up">▲+2.55%</span><span class="tag live">即時</span></div>${periodBar("日").replace('<div class="between">', '<div class="row">')}</div>${chartCard("kline", { tip: true }).replace('class="card chart-card"', 'class="card chart-card" style="flex:1;display:flex;flex-direction:column"')}</div>`;
+
+const RULES = [["target", "到價", "成交價 ≥ 或 ≤ 某價", "示範半導體 ≥ 105"], ["pct", "漲跌幅", "今日相對昨收", "≤ −5%"], ["brief", "持倉損益", "未實現損益％", "≥ +20%"], ["bolt", "爆量", "今日量 ÷ 5 日均量", "≥ 2 倍"], ["wave", "均線突破", "上穿／下穿均線", "下穿 20 日線"], ["ceil", "漲跌停", "到達漲停或跌停", "漲停"]];
+R["alert-new"] = () => shell("alerts", `<button class="back">${ic("chevl")}取消</button><div class="ttl"><h1 class="h1" style="font-size:18px;text-align:center">新增警報</h1></div><button class="btn sm p">建立</button>`,
+  `<div class="narrow stack" style="padding-bottom:24px">
+   <div class="field"><span class="lb">商品</span><div class="opt on"><div class="grow"><b>示範半導體</b> <span class="code">TS01</span></div><span class="px up">100.50</span><span class="pill up">▲+2.55%</span></div></div>
+   <div class="field"><span class="lb">規則</span><div class="rules">${RULES.map(([i, t, d, e], k) => `<button class="opt ${k === 0 ? "on" : ""}" aria-pressed="${k === 0}"><span class="oi">${ic(i)}</span><span class="grow"><b class="h3">${t}</b><br><span class="xs mu">${d}</span><br><span class="xs mu2">例：${e}</span></span></button>`).join("")}</div></div>
+   <div class="field"><span class="lb">條件</span><div class="seg wide"><button aria-pressed="true">≥ 漲到</button><button>≤ 跌到</button></div>
+   <div class="stepper" style="margin-top:6px"><button class="ibtn">${ic("minus")}</button><input class="input" inputmode="decimal" value="105.00" aria-label="門檻價格"><button class="ibtn">${ic("plus")}</button></div>
+   <div class="between xs"><span class="mu">現價 <span class="num">100.50</span> · 跳動 0.5</span><span class="dist">距離現價 +4.48%</span></div></div>
+   <div class="hint ac">${ic("info", "s")}<span>可設定範圍 <span class="num">88.20</span>（跌停）～ <span class="num">107.50</span>（漲停）</span></div>
+   <div class="field"><span class="lb">頻率</span><div class="seg wide"><button>一次</button><button>每日一次</button><button aria-pressed="true">每次</button></div><span class="xs mu">條件離開後再次成立就通知，兩次至少間隔 <b class="num">30</b> 分鐘</span></div>
+   <div class="field"><span class="lb">通知管道</span><div class="row"><button class="chip on" aria-pressed="true">${ic("phone", "s")}推播</button><button class="chip" aria-pressed="false">${ic("send", "s")}Telegram</button></div></div>
+   <div class="hint wa">${ic("warn", "s")}<span>目前沒有可接收推播的裝置。<a href="#">到通知設定啟用</a>，或同時勾選 Telegram。</span></div>
+   <div class="field"><label for="n">備註（選填）</label><input id="n" class="input" placeholder="例如：突破前高再加碼" maxlength="60"></div>
+   <div class="field"><span class="lb">到期（選填）</span><button class="opt">${ic("clock")}<span class="grow">不到期</span>${ic("chevr", "s")}</button></div>
+  </div>`, { noTab: true });
+R["alert-met"] = () => shell("alerts", `<button class="back">${ic("chevl")}取消</button><div class="ttl"><h1 class="h1" style="font-size:18px;text-align:center">新增警報</h1></div><button class="btn sm p">建立</button>`,
+  `<div class="narrow stack"><div class="field"><span class="lb">規則 · 漲跌幅</span><div class="seg wide"><button>≥ 漲幅</button><button aria-pressed="true">≤ 跌幅</button></div><div class="stepper"><button class="ibtn">${ic("minus")}</button><input class="input" value="−5.0%"><button class="ibtn">${ic("plus")}</button></div><div class="between xs"><span class="mu">範例金融控股 今日 <span class="chg dn">−6.30%</span></span><span class="dist">已超過門檻</span></div></div>
+  <div class="hint wa">${ic("info", "s")}<span><b>目前已滿足條件，不會立刻通知。</b>需先離開條件（跌幅回到 −5% 以內），再次觸及時才會通知。</span></div>
+  <div class="banner wa">${ic("lock", "s")}<span class="grow"><b>登入已過期</b> · 表單內容已保留</span><button class="btn sm o">重新登入</button></div></div>`, { noTab: true });
+
+function alertRow(st, icn, title, detail, toggle = true) {
+  return `<div class="al ${st}"><div class="ai">${ic(icn)}</div><div style="min-width:0"><div class="t"><span class="trunc">${title}</span></div><div class="d">${detail}</div></div>${toggle === true ? `<label class="tg"><input type="checkbox" ${st === "active" ? "checked" : ""}><span></span></label>` : toggle || ""}</div>`;
+}
+R.alerts = () => shell("alerts", `<div class="ttl"><h1 class="h1">警報</h1></div><button class="ibtn" aria-label="通知紀錄">${ic("bell")}<span class="badge">3</span></button><button class="ibtn" aria-label="新增警報">${ic("plus")}</button>`,
+  `<div class="two"><div><div class="seg wide" style="margin-bottom:12px"><button aria-pressed="true">警報 <span class="num">5</span></button><button>通知紀錄 <span class="num">3</span></button></div>
+  <h3 class="sec-t eyebrow">啟用中 · 3</h3><div class="card flush">
+   ${alertRow("active", "target", "示範半導體 TS01 · 價格 ≥ 105.00", `<span class="dist">距離 +4.48%</span><span>現價 100.50</span><span>每次 · 30 分</span><span>${ic("phone", "xs")}推播</span>`)}
+   ${alertRow("active", "pct", "範例金融控股 TS02 · 今日跌幅 ≤ −5%", `<span class="tag wa" style="color:var(--wa);background:var(--wa-soft)">已滿足 · 等待離開</span><span>每日一次</span><span>${ic("phone", "xs")}推播 ${ic("send", "xs")}TG</span>`)}
+   ${alertRow("active", "bolt", "虛構電子 TS03 · 爆量 ≥ 2 倍", `<span class="dist">目前 1.42 倍</span><span>一次</span><span>${ic("send", "xs")}TG</span>`)}</div>
+  <h3 class="sec-t eyebrow">已暫停 · 1</h3><div class="card flush">${alertRow("paused", "wave", "示範市值 ETF TE01 · 下穿 20 日線", `<span>現價距 MA20 +1.20%</span><span>每次 · 60 分</span>`)}</div>
+  <h3 class="sec-t eyebrow">已觸發 · 1</h3><div class="card flush">${alertRow("triggered", "ceil", "樣本航運 TS04 · 漲停", `<span>10:12 觸發</span><span>一次（已自動停用）</span>`, `<button class="btn sm g">重新啟用</button>`)}</div>
+  <h3 class="sec-t eyebrow">錯誤 · 1</h3><div class="card flush">${alertRow("error", "warn", "假想生技 TS05 · 持倉損益 ≤ −10%", `<span style="color:var(--cut)">持倉已清空</span><span>請刪除或改成其他規則</span>`, `<button class="ibtn bare">${ic("trash")}</button>`)}</div>
+  <h3 class="sec-t eyebrow">已到期 · 1</h3><div class="card flush">${alertRow("expired", "target", "範例高股息 ETF TE02 · 價格 ≤ 21.00", `<span>10/31 到期</span>`, `<button class="ibtn bare">${ic("trash")}</button>`)}</div></div>
+  <div class="inbox-col"><h3 class="sec-t eyebrow">通知紀錄 <button class="link">全部標為已讀</button></h3><div class="card">${inboxRows()}</div></div></div>`);
+function inboxRows() {
+  return `<div class="ev unread"><span class="ud"></span><div style="min-width:0"><div class="t">示範半導體 TS01｜價格 ≥ 100.00</div><div class="b">現價 <span class="num">100.50</span>（<span class="chg up no-glyph">+2.55%</span>）· 即時</div><div class="row" style="margin-top:6px"><span class="dv sent">${ic("check", "xs")}推播</span><span class="dv skipped">TG 略過</span></div></div><span class="xs mu num">10:41</span></div>
+  <div class="ev unread"><span class="ud"></span><div style="min-width:0"><div class="t">範例金融控股 TS02｜今日跌幅 ≤ −5%</div><div class="b">現價 <span class="num">23.80</span>（<span class="chg dn no-glyph">−6.30%</span>）· <span style="color:var(--wa)">延後補發</span></div><div class="row" style="margin-top:6px"><span class="dv failed">${ic("x", "xs")}推播失敗</span><span class="dv sent">${ic("check", "xs")}Telegram</span></div></div><span class="xs mu num">11:02</span></div>
+  <div class="ev unread"><span class="ud"></span><div style="min-width:0"><div class="t">樣本航運 TS04｜漲停</div><div class="b">現價 <span class="num">55.00</span>（<span class="chg up no-glyph">+10.00%</span>）· 即時</div></div><span class="xs mu num">10:12</span></div>
+  <div class="ev"><span class="ud"></span><div style="min-width:0"><div class="t">示範市值 ETF TE01｜下穿 20 日線</div><div class="b">現價 <span class="num">148.20</span> · 昨天 13:21</div></div><span class="xs mu num">11/03</span></div>`;
+}
+R.watch = () => shell("watch", `<div class="ttl"><h1 class="h1">自選</h1></div><button class="ibtn">${ic("plus")}</button>`,
+  `<div class="narrow stack"><div class="row" style="overflow:auto"><div class="seg"><button aria-pressed="true">觀察中 <span class="num">5</span></button><button>ETF <span class="num">0</span></button><button>短線 <span class="num">3</span></button></div><button class="ibtn bare">${ic("edit")}</button></div>
+  <div class="field"><div style="position:relative"><input class="input" placeholder="搜尋代號或名稱" value="示範" style="padding-left:40px"><span style="position:absolute;left:12px;top:12px" class="mu">${ic("search")}</span></div></div>
+  <div class="card flush list-card"><div class="qlist">${qrow(D.TS01, { badge: '<span class="tag acc">已持有</span>' }).replace('<div class="rt">', '<div class="rt" style="flex-direction:row;align-items:center;gap:8px"><span class="tag ghost">已在清單</span>')}${qrow(D.TE01, { badge: '<span class="tag acc">已持有</span>' }).replace('<div class="rt">', '<div class="rt" style="flex-direction:row;align-items:center;gap:8px"><button class="btn sm o">'+ic("plus","s")+'加入</button>')}</div></div>
+  <div class="qhead"><button class="on">名稱 ${ic("drag", "xs")}自訂排序</button><span></span><span>漲跌 ${ic("sort", "xs")}</span></div>
+  <div class="card flush list-card"><div class="qlist">${[D.TS04, D.TS03, D.TS05, D.TE02].map((s, i) => qrow(s, { st: i === 1 ? "delayed" : "live" }).replace('<div style="min-width:0">', `<div class="row" style="min-width:0"><span class="mu2">${ic("drag", "s")}</span><div style="min-width:0">`).replace('</div></div>\n      <div class="sp">', '</div></div></div>\n      <div class="sp">')).join("")}
+   <div class="qrow" style="background:var(--cut-soft);grid-template-columns:1fr auto"><span class="sm">← 滑動刪除「範例高股息 ETF」</span><button class="btn sm d">${ic("trash", "s")}刪除</button></div></div></div>
+  <p class="xs mu" style="text-align:center">8 / 200 檔 · 清單 3 / 10</p></div>`);
+
+const PERM = {
+  unsupported: [ic("phone", "l"), "這台裝置不支援推播", "推播需要 iOS／iPadOS 16.4 以上。你仍然可以建立警報，通知會改送 Telegram。", `<button class="btn">查看 Telegram 狀態</button>`],
+  not_installed: [ic("addsq", "l"), "先把看盤加入主畫面", `<ol class="steps"><li><span class="n">1</span>點 Safari 下方的 ${ic("share", "s")} <b>分享</b></li><li><span class="n">2</span>選 ${ic("addsq", "s")} <b>加入主畫面</b></li><li><span class="n">3</span>從主畫面的「看盤」圖示開啟</li></ol>`, ""],
+  default: [ic("bell", "l"), "開啟警報推播", "到價、跌破成本、爆量時，鎖屏也能馬上知道。推播只含商品與價格，不含部位與金額。", `<button class="btn p wide">${ic("bell", "s")}開啟通知</button><p class="xs mu" style="margin:0">按下後 iOS 會詢問是否允許</p>`],
+  granted: [ic("check", "l"), "推播已啟用", `<div class="card tight" style="text-align:left;width:100%"><div class="set-row"><span class="mu">${ic("phone")}</span><div class="grow"><b>這台 iPhone <span class="tag live">目前裝置</span></b><small>最後成功 10:41</small></div></div><div class="set-row"><span class="mu">${ic("phone")}</span><div class="grow"><b>iPad Pro</b><small>最後成功 昨天 13:20</small></div><button class="btn sm g">移除</button></div><div class="set-row"><span class="mu">${ic("phone")}</span><div class="grow"><b>舊 iPhone <span class="tag cut">已失效</span></b><small>10/02 起無法送達</small></div><button class="btn sm g">移除</button></div></div>`, `<button class="btn o wide">${ic("send", "s")}傳送測試通知</button>`],
+  revoked: [ic("refresh", "l"), "這台裝置的推播已失效", "訂閱過期或被系統撤銷，需要重新啟用才能收到警報。", `<button class="btn p wide">重新啟用通知</button>`],
+  denied: [ic("x", "l"), "推播已被關閉", "網頁無法再次詢問。請到 iPhone 的 <b>設定 → 通知 → 看盤</b>，開啟「允許通知」後回到這裡。", `<button class="btn wide">我已開啟，重新檢查</button>`],
+};
+function permCard(k) { const [i, t, d, a] = PERM[k]; return `<div class="card perm perm-${k}"><div class="empty" style="padding:16px 8px"><div class="ei">${i}</div><h2 class="h2">${t}</h2><div class="sm" style="margin:0;max-width:320px">${d}</div>${a}</div></div>`; }
+R["settings-notify"] = () => shell("settings", `<button class="back">${ic("chevl")}設定</button><div class="ttl"><h1 class="h1" style="font-size:18px">通知</h1></div>`,
+  `<div class="narrow stack">${permCard(q.get("perm") || "granted")}
+   <h3 class="sec-t eyebrow">Telegram（備援）</h3><div class="card"><div class="set-row"><span style="color:var(--ac)">${ic("send")}</span><div class="grow"><b>Telegram <span class="tag live">已連線</span></b><small>連線由後端設定</small></div></div>
+   <div class="set-row"><div class="grow"><b>推播失敗時改送 Telegram</b><small>沒有可用裝置或推播送不出去時</small></div><label class="tg"><input type="checkbox" checked><span></span></label></div>
+   <div class="set-row"><div class="grow"><b>所有警報同時送 Telegram</b><small>重要警報建議開啟（推播不保證送達）</small></div><label class="tg"><input type="checkbox"><span></span></label></div></div></div>`, { noTab: true });
+R.settings = () => shell("settings", `<div class="ttl"><h1 class="h1">設定</h1></div>`,
+  `<div class="two"><div><h3 class="sec-t eyebrow">通知</h3><div class="card"><div class="set-row"><span style="color:var(--ac)">${ic("bell")}</span><div class="grow"><b>推播通知</b><small>已啟用 · 2 台裝置</small></div><span class="tag live">正常</span>${ic("chevr", "s")}</div></div>
+  <h3 class="sec-t eyebrow">外觀</h3><div class="card"><div class="set-row"><div class="grow"><b>漲跌顏色</b><small>任何情況都有 ▲▼／＋－</small></div><div class="seg"><button aria-pressed="true"><span style="color:var(--rise)">紅漲</span><span style="color:var(--fall)">綠跌</span></button><button><span style="color:var(--fall)">綠漲</span><span style="color:var(--rise)">紅跌</span></button></div></div>
+  <div class="set-row"><div class="grow"><b>主題</b></div><div class="seg"><button>系統</button><button aria-pressed="true">深色</button><button>淺色</button></div></div></div>
+  <h3 class="sec-t eyebrow">圖表預設</h3><div class="card"><div class="set-row"><div class="grow"><b>預設週期</b></div><div class="seg"><button aria-pressed="true">分時</button><button>日</button><button>週</button><button>月</button></div></div>
+  <div class="set-row"><div class="grow"><b>均線</b></div><div class="chips"><button class="chip on"><i class="sw" style="background:var(--ma5)"></i>5</button><button class="chip">10</button><button class="chip on"><i class="sw" style="background:var(--ma20)"></i>20</button><button class="chip on"><i class="sw" style="background:var(--ma60)"></i>60</button></div></div>
+  <div class="set-row"><div class="grow"><b>副圖</b></div><div class="seg"><button>無</button><button aria-pressed="true">KD</button><button>MACD</button><button>RSI</button></div></div>
+  <div class="set-row"><div class="grow"><b>成交量</b></div><label class="tg"><input type="checkbox" checked><span></span></label></div></div></div>
+  <div><h3 class="sec-t eyebrow">損益基準</h3><div class="card"><div class="set-row"><div class="grow"><b>損益顯示</b><small>扣除預估手續費與證交稅（股票 0.3%、ETF 0.1%）</small></div><div class="seg"><button aria-pressed="true">毛額</button><button>扣稅費</button></div></div></div>
+  <h3 class="sec-t eyebrow">資料來源</h3><div class="card"><div class="set-row"><span style="color:var(--ac)">${ic("db")}</span><div class="grow"><b>個股行情 KGI</b><small>即時（≤ 15 秒）· 10:41:05</small></div><span class="tag live">正常</span></div><div class="set-row"><span style="color:var(--ac)">${ic("db")}</span><div class="grow"><b>加權指數 TWSE</b><small>每分鐘 · 10:41:00</small></div><span class="tag live">正常</span></div><div class="set-row"><span style="color:var(--cut)">${ic("db")}</span><div class="grow"><b>櫃買指數</b><small>資料來源尚未開通</small></div><span class="tag cut">未開通</span></div></div>
+  <h3 class="sec-t eyebrow">關於</h3><div class="card"><div class="set-row"><div class="grow"><b>版本</b><small class="num">1.0.0</small></div></div><div class="set-row"><div class="grow"><b>如何加入主畫面</b></div>${ic("chevr", "s")}</div></div></div></div>`);
+R.splash = () => `<div style="height:100vh;display:grid;place-items:center;background:var(--bg) var(--halo)"><div style="text-align:center"><img src="icon.svg" width="96" height="96" style="border-radius:22px;box-shadow:0 0 60px rgba(62,230,255,.25)" alt=""><p class="eyebrow" style="margin-top:18px">QUANT GRID</p><h1 class="h1 grad-tx" style="font-size:28px;margin-top:4px">看盤</h1></div></div>`;
+document.body.insertAdjacentHTML("afterbegin", MK.sprite());
+document.getElementById("root").innerHTML = (R[S] || R.overview)();
+</script>
+<style>.steps{list-style:none;padding:0;margin:0;display:grid;gap:10px;text-align:left}.steps li{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--s2);border:1px solid var(--ln)}.steps .n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--ac-grad);color:var(--ac-ink);font:700 12px var(--f-m);flex:none}</style>
+</body>
+</html>

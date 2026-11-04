@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-Hant-TW" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>看盤設計稿</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components.css">
+<style>
+  body{padding:0 0 80px}
+  .bd{max-width:1520px;margin:0 auto;padding:0 32px}
+  header.hero{padding:56px 0 24px;display:flex;gap:28px;align-items:center;flex-wrap:wrap}
+  header.hero img{width:112px;height:112px;border-radius:26px;box-shadow:0 0 60px rgba(62,230,255,.25)}
+  header.hero h1{font:800 44px/1.05 var(--f-d);margin:6px 0 8px;letter-spacing:-.01em}
+  .toc{display:flex;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:5;padding:12px 0;background:linear-gradient(var(--bg) 75%,transparent)}
+  .toc a{padding:6px 12px;border-radius:999px;border:1px solid var(--ln2);color:var(--mu);font-size:13px}
+  .toc a:hover{color:var(--ac);border-color:var(--ac-line)}
+  section.s{padding:36px 0 8px;border-top:1px solid var(--ln);margin-top:28px}
+  section.s > h2{font:800 26px/1.2 var(--f-d);margin:0 0 4px}
+  section.s > p.lead{color:var(--mu);margin:0 0 20px;max-width:880px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  @media (max-width:900px){.g2,.g3,.g4{grid-template-columns:1fr}}
+  .sw{display:flex;flex-direction:column;border-radius:14px;overflow:hidden;border:1px solid var(--ln)}
+  .sw .c{height:64px}
+  .sw .t{padding:8px 10px;font:500 11px/1.4 var(--f-m);background:var(--s1)}
+  .sw .t b{font:600 12px var(--f-b);display:block;color:var(--tx)}
+  .palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+  .lbl{font:600 11px/1.3 var(--f-m);letter-spacing:.12em;text-transform:uppercase;color:var(--mu2);margin:18px 0 8px}
+  .frames{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start}
+  .frame{display:flex;flex-direction:column;gap:10px}
+  .frame .cap{font-size:13px;color:var(--mu)} .frame .cap b{color:var(--tx);font-weight:600}
+  .dev{position:relative;overflow:hidden;border:1px solid var(--ln2);background:#000;box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 0 6px rgba(120,160,255,.06)}
+  .dev iframe{border:0;transform-origin:0 0;display:block;background:var(--bg)}
+  .dev.phone{border-radius:44px}
+  .dev.tab{border-radius:24px}
+  .dev.desk{border-radius:12px}
+  .mat{width:100%;border-collapse:collapse;font-size:13px}
+  .mat th,.mat td{padding:10px 12px;border-bottom:1px solid var(--ln);text-align:left;vertical-align:middle}
+  .mat th{font:600 11px var(--f-m);letter-spacing:.1em;color:var(--mu2);text-transform:uppercase}
+  .demo{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .lockbg{padding:24px;border-radius:28px;background:radial-gradient(600px 300px at 30% 0%,#2a3a7a,transparent),linear-gradient(160deg,#0d1640,#1d0f3c 60%,#05070D);display:grid;gap:10px}
+  .lockbg .time{color:#fff;text-align:center;font:300 64px/1 var(--f-d);margin:8px 0 18px;letter-spacing:-.02em}
+  .note{font-size:13px;color:var(--mu);line-height:1.7}
+  .note code{font:500 12px var(--f-m);color:var(--ac);background:var(--ac-soft);padding:1px 5px;border-radius:4px}
+  .cmp td:first-child{color:var(--tx);font-weight:600;white-space:nowrap}
+  .cmp .same{color:var(--ac)} .cmp .diff{color:var(--ac2)}
+  .spec li{margin:4px 0}
+</style>
+</head>
+<body>
+<div class="bd">
+<header class="hero">
+  <img src="icon.svg" alt="看盤 App 圖示">
+  <div>
+    <p class="eyebrow">看盤 App · 設計稿 v1.0 · 2026-11-04 · 風格「Quant Grid」</p>
+    <h1><span class="grad-tx">看盤</span> 設計系統與畫面</h1>
+    <p class="mu" style="margin:0;max-width:760px">深色量化儀表板：深海軍藍黑底、24px 髮絲線格點、青／紫 AI 光暈、等寬數字。所有數字與商品都是<b>虛構範例</b>，不是真實行情。</p>
+  </div>
+</header>
+<nav class="toc"><a href="#color">色彩</a><a href="#type">字型與數字</a><a href="#comp">元件</a><a href="#state">價格狀態</a><a href="#phone">iPhone</a><a href="#ipad">iPad</a><a href="#desk">桌面</a><a href="#states">必要狀態</a><a href="#chart">圖表規格</a><a href="#notify">通知</a><a href="#pwa">主畫面 App</a><a href="#family">與記帳 App</a></nav>
+
+<section class="s" id="color"><h2>色彩</h2><p class="lead">底色偏藍的近黑，讓青色光暈與紅綠漲跌都「浮」起來。錯誤與中斷刻意用<b>橘色</b>，不用紅色，避免和「上漲」混淆。淺色主題是冷白實驗室，同一套語意、壓深以達到對比。</p>
+<div id="pal"></div></section>
+
+<section class="s" id="type"><h2>字型與數字</h2><p class="lead">中文 Noto Sans TC、標題 Manrope（與記帳 App 相同）；所有數字改用 <b>JetBrains Mono</b>：等寬、斜線 0、tabular，位數變化時不跳動，也是科技感的主要來源。</p>
+<div class="grid g2">
+ <div class="card"><p class="lbl">數字層級</p>
+  <div class="stack" style="gap:14px">
+   <div class="row"><span class="huge px up">100.50</span><span class="xs mu">44 · 個股頁現價</span></div>
+   <div class="row"><span class="big num">NT$ 509,451</span><span class="xs mu">28–30 · 總市值</span></div>
+   <div class="row"><span class="num" style="font:600 22px var(--f-m)">10,000.00</span><span class="xs mu">22–28 · 指數卡</span></div>
+   <div class="row"><span class="px" style="font-size:16px">312.00</span><span class="pill flat">0.00%</span><span class="xs mu">16／13 · 列表價格與漲跌</span></div>
+   <div class="row"><span class="code">TS01 · 3 張</span><span class="xs mu">12 · 代號、數量</span></div>
+  </div></div>
+ <div class="card"><p class="lbl">文字層級</p>
+  <div class="stack" style="gap:12px">
+   <p class="eyebrow">EYEBROW · 11 MONO 大寫 · 區塊標籤</p>
+   <h1 class="h1">頁面標題 24 · Manrope 700</h1>
+   <h2 class="h2">卡片標題 16 · Manrope 700</h2>
+   <p style="margin:0">內文 15 · Noto Sans TC 400，行高 1.5。</p>
+   <p class="sm mu" style="margin:0">次要文字 13 · --mu</p>
+   <p class="xs mu2" style="margin:0">第三層 12 · --mu2（格線標籤、過期價格）</p>
+   <p class="note" style="margin:0">輸入框一律 ≥ 16px（避免 iOS 自動縮放）；點擊目標 ≥ 44pt；間距 4／8／12／16／24／32；圓角 8／12／18（與記帳 App 相同）。</p>
+  </div></div>
+</div></section>
+
+<section class="s" id="comp"><h2>元件</h2><p class="lead">意義不只靠顏色：漲跌一定有 ▲▼／＋－；狀態一定有文字或圖示。</p>
+<div class="grid g3" id="comps"></div></section>
+
+<section class="s" id="state"><h2>價格狀態 × 呈現位置</h2><p class="lead">看盤工具最危險的錯誤是讓人把過期價格當成現價。<b>過期與中斷的價格：去色＋虛線底線＋降到 --mu2</b>，走勢圖轉灰；稍舊只加琥珀標籤和時間。即時不加標籤（只在標題區顯示脈動的「即時」）。</p>
+<div class="card flush"><table class="mat" id="matrix"></table></div></section>
+
+<section class="s" id="phone"><h2>iPhone 390 × 844</h2><p class="lead">主要情境、單手操作。底部分頁列：總覽／自選／警報／設定／搜尋。子頁左上 App 內返回，並支援邊緣滑動返回。主要操作（週期、加警報、加自選）放在拇指範圍內。</p>
+<div class="frames" id="phones"></div></section>
+
+<section class="s" id="ipad"><h2>iPad 橫式 1366 × 1024 ／ 直式 820 × 1180</h2><p class="lead">≥ 960px 改用左側 76px 圖示導覽列（與記帳 App 相同）。個股頁 ≥ 1180px 為三欄：左＝持倉與自選清單、中＝圖表、右＝部位／報價／警報；直式 820 仍是單欄，但卡片變寬、圖表加高。</p>
+<div class="frames" id="ipads"></div></section>
+
+<section class="s" id="desk"><h2>桌面 1440 × 900</h2><p class="lead">與 iPad 橫式同一套版面。總覽：左大右小兩欄；個股頁三欄；警報頁左清單、右通知紀錄；新增警報在桌面以右側面板開啟。</p>
+<div class="frames" id="desks"></div></section>
+
+<section class="s" id="states"><h2>必要狀態</h2><p class="lead">載入用骨架（不是整頁轉圈）；空狀態各有下一步；離線保留資料並停用寫入；登入過期保留表單；圖表缺資料明講「自 HH:mm 起」並讓缺口斷線。</p>
+<div class="frames" id="stateframes"></div></section>
+
+<section class="s" id="chart"><h2>圖表規格</h2>
+<div class="grid g2">
+ <div class="card"><p class="lbl">分時線</p><ul class="note spec">
+  <li>價格線 <code>--ch-line</code> 1.8px＋光暈；下方漸層面積（資料不完整時不畫面積，只畫線）。</li>
+  <li>昨收參考線：點線 <code>--ch-prev</code>，左側標「昨收 98.00」。Y 軸至少包含昨收。</li>
+  <li>漲跌停範圍：價格接近時才在上／下緣出現琥珀標示「漲停 107.50 ↑」。</li>
+  <li>成交量柱：每分鐘量，依與前一分鐘比較著色，透明度 .55。</li>
+  <li>X 軸固定 09:00–13:30（由伺服器的 session_start／end），未走完的時段留白。</li>
+  <li>缺資料：<code>coverage.complete=false</code> 時上方提示「分時線自 10:42 起」；<code>gaps</code> 的區間斷線，<b>不補線</b>。盤前空資料顯示「尚未開盤」。</li>
+ </ul></div>
+ <div class="card"><p class="lbl">K 線（日／週／月）</p><ul class="note spec">
+  <li>蠟燭：上漲空心框、下跌實心（顏色依慣例）；最後一根 <code>partial</code> 用虛線框。</li>
+  <li>均線 MA5／10／20／60：黃／粉／青／紫，圖例顯示游標所在處的值。</li>
+  <li>成交量副圖（指數用成交金額）；副圖可選 KD／MACD／RSI，與主圖同步十字游標。</li>
+  <li>疊加層（可個別開關）：成本線（紫實線＋「成本 90.00」）、警報線（琥珀虛線＋🔔＋價位）、買賣點 B（紫）／S（琥珀）。</li>
+  <li>資料範圍不足：圖上方「資料自 2024/06/03 起」；往左拖到最早自動載入，沒有更多時顯示「已是最早資料」。</li>
+ </ul></div>
+ <div class="card"><p class="lbl">互動</p><ul class="note spec">
+  <li><b>長按</b>（350ms）出現十字游標與數值浮層（開高低收、漲跌、量、均線值）；放開後浮層保留 2 秒。</li>
+  <li><b>拖曳</b>：十字游標模式下沿著 K 棒移動；一般模式左右平移。<b>雙指</b>縮放（20～300 根）。<b>雙擊</b>還原。</li>
+  <li>十字游標停在某價位時，浮層出現「在 105.00 設警報」按鈕 → 帶入商品與價格開新增警報。</li>
+  <li>圖表區 <code>touch-action:pan-y</code>：水平手勢屬於圖表，垂直才捲動頁面；圖表內拖曳<b>不觸發</b>下拉更新。</li>
+  <li>手機轉橫向 → 圖表全螢幕（右上 ✕ 返回）。</li>
+  <li>文字替代：<code>aria-label</code>「分時線：現價 100.50，昨收 98.00，區間高 101.00 低 98.00」。</li>
+ </ul></div>
+ <div class="card"><p class="lbl">迷你走勢圖</p><ul class="note spec">
+  <li>≤ 40 點，1.6px 線＋16% 面積；虛線基準為昨收。</li>
+  <li>依 direction 著色；過期／中斷時轉灰、透明度 .35。</li>
+  <li>純顯示，沒有互動；列表上寬 56–64px、高 28px；指數卡全寬 36px 高。</li>
+ </ul></div>
+</div></section>
+
+<section class="s" id="notify"><h2>通知</h2><p class="lead">權限 6 種狀態（設定頁與新增警報頁都會用到），以及鎖屏通知文案：標題一行、內文一行，一眼讀懂。推播不含部位數量與金額。</p>
+<div class="frames" id="perms"></div>
+<p class="lbl" style="margin-top:28px">鎖屏通知範例</p>
+<div class="grid g2"><div class="lockbg" id="locks"><div class="time">10:41</div></div>
+<div class="card"><p class="lbl">文案規則</p><ul class="note spec">
+ <li>標題：<code>{名稱} {代號}｜{規則白話}</code>；內文：<code>現價 {價格}（{±%}）· {HH:mm} · {資料狀態}</code>。</li>
+ <li>延後補發：資料狀態位置改成「延後補發」，並在 App 通知紀錄標示琥珀色。</li>
+ <li>同一則警報的新通知用同一個 <code>tag</code> 取代舊的，不洗版。</li>
+ <li>點擊 → 直接開啟該股個股頁，頂部出現「由警報開啟：價格 ≥ 100.00」提示條，圖上警報線高亮 3 秒。</li>
+ <li>App 圖示角標 = 未讀通知數（<code>navigator.setAppBadge</code>）。</li>
+ <li>測試通知：「看盤｜測試通知」／「如果你看到這則，推播已經設定完成 · 10:41」。</li>
+</ul></div></div></section>
+
+<section class="s" id="pwa"><h2>主畫面 App</h2>
+<div class="grid g3">
+ <div class="card" style="text-align:center"><p class="lbl">App 圖示（深色／淺色底）</p><div class="row" style="justify-content:center;gap:24px"><img src="icon.svg" width="120" style="border-radius:27px" alt=""><div style="padding:18px;border-radius:24px;background:#eef2f9"><img src="icon.svg" width="84" style="border-radius:19px" alt=""></div></div><p class="note">K 棒＋一條上升的青紫光線，終點是發光的「即時」點。和記帳 App 同為深底圓角方形，但改用光線與 K 棒區分。</p></div>
+ <div class="card"><p class="lbl">啟動畫面</p><div class="dev phone" style="width:195px;height:422px;margin:auto"><iframe src="screen.html?s=splash&chrome=0" width="390" height="844" style="transform:scale(.5)"></iframe></div></div>
+ <div class="card"><p class="lbl">提示條</p><div class="stack">
+  <div class="banner cut"><svg class="ic s"><use href="#i-wifioff"/></svg><span class="grow"><b>離線</b> · 資料更新於 <span class="num">10:38</span></span></div>
+  <div class="banner ac"><svg class="ic s"><use href="#i-refresh"/></svg><span class="grow">有新版本，重新開啟套用</span><button class="btn sm o">重新開啟</button></div>
+  <div class="banner wa"><svg class="ic s"><use href="#i-lock"/></svg><span class="grow"><b>登入已過期</b> · 表單已保留</span><button class="btn sm o">重新登入</button></div>
+  <div class="banner cut"><svg class="ic s"><use href="#i-cut"/></svg><span class="grow">行情來源中斷 · 顯示 <span class="num">10:35</span> 資料</span><button class="btn sm">重試</button></div>
+  <p class="note">安全區域：頂部列 padding = 10px + safe-area-inset-top；分頁列 padding-bottom = 6px + inset-bottom。頂部列在捲動時以漸層底襯淡出。</p>
+ </div></div>
+</div></section>
+
+<section class="s" id="family"><h2>與記帳 App 的一致與不同</h2>
+<div class="card flush"><table class="mat cmp">
+ <tr><th>項目</th><th>一致</th><th>刻意不同</th></tr>
+ <tr><td>Tokens</td><td class="same">同樣的變數名稱（--bg --s1–3 --ln --tx --mu --ac …）、圓角 8／12／18、44pt 點擊、安全區域變數</td><td class="diff">底色由暖炭灰改為偏藍近黑；主色由霧藍改為青＋紫漸層光</td></tr>
+ <tr><td>導覽</td><td class="same">手機底部分頁列；≥960px 左側圖示列、滑過顯示名稱</td><td class="diff">看盤的圖示列更窄（76px），把寬度留給圖表；個股頁三欄</td></tr>
+ <tr><td>卡片</td><td class="same">圓角卡片、髮絲線分隔、卡片標題 16px</td><td class="diff">重點卡片加漸層描邊與角落刻度（儀表感）；背景加 24px 格點</td></tr>
+ <tr><td>字型</td><td class="same">Noto Sans TC＋Manrope</td><td class="diff">數字改用等寬 JetBrains Mono（對齊與科技感）</td></tr>
+ <tr><td>顏色語意</td><td class="same">金額不只靠顏色（記帳用正負號，看盤用 ▲▼／＋－）</td><td class="diff">看盤有紅漲綠跌／綠漲紅跌切換；錯誤改用橘色（紅色已用於上漲）</td></tr>
+ <tr><td>主題</td><td class="same">深色為主，系統／深色／淺色三選一</td><td class="diff">淺色是冷白而非咖啡紙色</td></tr>
+ <tr><td>圖示</td><td class="same">深底圓角方形 App 圖示、同樣 1.7px 線條圖示</td><td class="diff">獨立 App 圖示（K 棒＋光線）</td></tr>
+</table></div></section>
+</div>
+
+<script src="mock-kit.js"></script>
+<script>
+document.body.insertAdjacentHTML("afterbegin", MK.sprite());
+const { ic, D, qrow, idxCard, statusTag, pill, spark } = MK;
+// 色彩
+const SW = [["底與表面", [["--bg", "App 底"], ["--bg2", "側欄"], ["--s1", "卡片"], ["--s2", "區塊／輸入"], ["--s3", "選取"], ["--ln2", "框線"]]], ["文字", [["--tx", "主要"], ["--mu", "次要"], ["--mu2", "第三層／過期"]]], ["品牌", [["--ac", "青 · 主色"], ["--ac2", "紫 · 副色"]]], ["漲跌（紅漲綠跌預設）", [["--rise", "紅 · 漲"], ["--fall", "綠 · 跌"], ["--flat", "平盤"]]], ["狀態", [["--wa", "稍舊／警告"], ["--cut", "中斷／錯誤"]]], ["圖表", [["--ch-line", "分時線"], ["--ch-cost", "成本線"], ["--ch-alert", "警報線"], ["--ma5", "MA5"], ["--ma10", "MA10"], ["--ma20", "MA20"], ["--ma60", "MA60"]]]];
+function palette(theme) {
+  const root = document.createElement("div"); root.setAttribute("data-theme", theme);
+  return SW.map(([g, arr]) => `<p class="lbl">${g}</p><div class="palette">${arr.map(([v, n]) => `<div class="sw"><div class="c" style="background:var(${v})"></div><div class="t"><b>${n}</b>${v}</div></div>`).join("")}</div>`).join("");
+}
+document.getElementById("pal").innerHTML = `<div class="grid g2"><div class="card"><p class="eyebrow">深色（主要）</p>${palette()}</div><div class="card light-scope" style="background:#fff"><p class="eyebrow">淺色</p><div id="lightpal"></div></div></div>`;
+// 淺色色票：直接讀 tokens.css 的淺色值
+(() => {
+  const L = { "--bg": "#F2F5FB", "--bg2": "#E9EEF8", "--s1": "#FFFFFF", "--s2": "#F5F8FD", "--s3": "#E8EEF9", "--ln2": "rgba(20,40,100,.20)", "--tx": "#0A1330", "--mu": "#56627F", "--mu2": "#8D97B0", "--ac": "#0088B8", "--ac2": "#5B4BDB", "--rise": "#D81E40", "--fall": "#058A52", "--flat": "#6B7591", "--wa": "#A76400", "--cut": "#C2510A", "--ch-line": "#0088B8", "--ch-cost": "#5B4BDB", "--ch-alert": "#B86E00", "--ma5": "#C48A00", "--ma10": "#C2408F", "--ma20": "#0088B8", "--ma60": "#6D4FD8" };
+  document.getElementById("lightpal").innerHTML = SW.map(([g, arr]) => `<p class="lbl" style="color:#8D97B0">${g}</p><div class="palette">${arr.map(([v, n]) => `<div class="sw" style="border-color:rgba(20,40,100,.12)"><div class="c" style="background:${L[v]};border-bottom:1px solid rgba(20,40,100,.08)"></div><div class="t" style="background:#fff;color:#56627F"><b style="color:#0A1330">${n}</b>${L[v]}</div></div>`).join("")}</div>`).join("");
+})();
+
+// 元件
+const C = [];
+C.push(["漲跌標籤", `<div class="stack"><div class="demo"><span class="chg up">+2.50</span><span class="chg dn">−1.60</span><span class="chg flat">平盤</span></div><div class="demo"><span class="pill up">▲+2.55%</span><span class="pill dn">▼−6.30%</span><span class="pill flat">0.00%</span><span class="pill solid up">漲停</span><span class="pill solid dn">跌停</span><span class="pill na">—</span></div><div class="demo" data-colors-demo><span class="xs mu">綠漲紅跌：</span><span class="pill" style="background:rgba(20,217,138,.14);color:var(--fall)">▲+2.55%</span><span class="pill" style="background:rgba(255,77,106,.14);color:var(--rise)">▼−6.30%</span></div><p class="note" style="margin:0">方向來自伺服器 <code>direction</code>；符號固定，只有顏色隨慣例交換。</p></div>`]);
+C.push(["資料狀態標籤", `<div class="demo">${["live", "delayed", "stale", "closed", "cut", "nodata"].map((s) => statusTag(s)).join("")}<span class="tag halt">暫停交易</span><span class="tag lim-up">漲停</span><span class="tag lim-dn">跌停</span></div><p class="note">即時有脈動點；稍舊琥珀；過期虛線框；收盤中性；中斷橘＋斷鏈圖示；無資料灰。</p>`]);
+C.push(["市場狀態列", `<div class="stack">${["open", "pre_open", "closing_auction", "post", "closed"].map((k) => `<div class="mkt ${k}"><span class="dot"></span><b>${{ open: "盤中", pre_open: "盤前試撮", closing_auction: "收盤撮合", post: "盤後", closed: "休市 · 春節" }[k]}</b><span class="mu">${{ open: "13:30 收盤", pre_open: "09:00 開盤", closing_auction: "13:30 收盤", post: "價格已定 · 14:30 結束", closed: "下次開市 02/03（二）09:00" }[k]}</span></div>`).join("")}</div>`]);
+C.push(["商品列：持倉／自選／搜尋結果", `<div class="qlist">${qrow(D.TS01, { hold: "3 張", pnl: ["up", "+31,500 · +11.67%"] })}${qrow(D.TE02)}${qrow(D.TE01, { badge: '<span class="tag acc">已持有</span><span class="tag ghost">已在清單</span>' })}</div>`]);
+C.push(["指數卡", `<div class="grid g2" style="gap:10px">${idxCard(D.TAIEX)}${idxCard(D.TPEX)}</div>`]);
+C.push(["版面壓力", `<div class="qlist">${qrow({ ...D.TE01, name: "示範臺灣永續高股息低波動精選 30 ETF 證券投資信託基金", code: "TE09", px: 1234.5, pct: 9.87, chg: 110.9, dir: "up" }, { hold: "1,234 張", pnl: ["up", "+123,456,789 · +987.65%"] })}</div><dl class="dl" style="margin-top:6px"><div><dt>成交量</dt><dd>1,234,567 張</dd></div><div><dt>成交金額</dt><dd>1,234.5 億</dd></div></dl><p class="note" style="margin:6px 0 0">長名稱單行截斷（完整名稱在個股頁）；大數字用「萬／億」縮寫，但損益保留到元。</p>`]);
+C.push(["分段控制、篩選晶片、開關", `<div class="stack"><div class="seg"><button aria-pressed="true">分時</button><button>日</button><button>週</button><button>月</button></div><div class="chips"><button class="chip on"><i class="sw" style="background:var(--ma5)"></i>MA5</button><button class="chip">MA10</button><button class="chip on"><i class="sw" style="background:var(--ma20)"></i>MA20</button><button class="chip on"><i class="sw" style="background:var(--ma60)"></i>MA60</button></div><div class="row"><label class="tg"><input type="checkbox" checked><span></span></label><label class="tg"><input type="checkbox"><span></span></label><label class="tg"><input type="checkbox" disabled><span></span></label></div></div>`]);
+C.push(["按鈕", `<div class="demo"><button class="btn p">${ic("bell", "s")}建立警報</button><button class="btn o">${ic("plus", "s")}加入自選</button><button class="btn">次要</button><button class="btn g">文字</button><button class="btn d">${ic("trash", "s")}刪除</button><button class="btn p" disabled>離線停用</button><button class="ibtn">${ic("search")}</button><button class="ibtn on">${ic("star")}</button><button class="ibtn">${ic("bell")}<span class="badge">3</span></button></div>`]);
+C.push(["步進器與即時提示", `<div class="stack"><div class="stepper"><button class="ibtn">${ic("minus")}</button><input class="input" value="105.00" aria-label="門檻"><button class="ibtn">${ic("plus")}</button></div><div class="between xs"><span class="mu">現價 <span class="num">100.50</span> · 跳動 0.5</span><span class="dist">距離現價 +4.48%</span></div><div class="hint wa">${ic("info", "s")}<span>目前已滿足條件，不會立刻通知；需先離開條件再次觸及時才會通知</span></div><div class="ferr">${ic("warn", "xs")}超出漲停價 107.50</div></div>`]);
+C.push(["警報卡（5 種狀態）", `<div>${[["active", "target", "價格 ≥ 105.00", '<span class="dist">距離 +4.48%</span><span>每次 · 30 分</span>'], ["paused", "wave", "下穿 20 日線", "<span>已暫停</span>"], ["triggered", "ceil", "漲停", "<span>10:12 觸發 · 一次</span>"], ["expired", "target", "價格 ≤ 21.00", "<span>10/31 到期</span>"], ["error", "warn", "持倉損益 ≤ −10%", '<span style="color:var(--cut)">持倉已清空</span>']].map(([s, i, t, d]) => `<div class="al ${s}"><div class="ai">${ic(i)}</div><div style="min-width:0"><div class="t">${t}</div><div class="d">${d}</div></div><span class="xs mu">${{ active: "啟用中", paused: "已暫停", triggered: "已觸發", expired: "已到期", error: "錯誤" }[s]}</span></div>`).join("")}</div>`]);
+C.push(["通知紀錄列", `<div><div class="ev unread"><span class="ud"></span><div><div class="t">示範半導體 TS01｜價格 ≥ 100.00</div><div class="b">現價 100.50（+2.55%）· 即時</div><div class="row" style="margin-top:6px"><span class="dv sent">${ic("check", "xs")}推播</span><span class="dv skipped">TG 略過</span></div></div><span class="xs mu num">10:41</span></div><div class="ev"><span class="ud"></span><div><div class="t">範例金融控股 TS02｜今日跌幅 ≤ −5%</div><div class="b">現價 23.80（−6.30%）· <span style="color:var(--wa)">延後補發</span></div><div class="row" style="margin-top:6px"><span class="dv failed">${ic("x", "xs")}推播失敗</span><span class="dv sent">${ic("check", "xs")}Telegram</span></div></div><span class="xs mu num">11:02</span></div></div>`]);
+C.push(["空狀態與骨架", `<div class="grid g2" style="gap:10px"><div class="empty" style="padding:12px"><div class="ei">${ic("bell", "l")}</div><b class="h3">還沒有警報</b><button class="btn sm o">${ic("plus", "s")}新增警報</button></div><div class="stack" style="justify-content:center"><div class="sk" style="height:14px;width:70%"></div><div class="sk" style="height:26px"></div><div class="sk" style="height:36px"></div></div></div>`]);
+document.getElementById("comps").innerHTML = C.map(([t, h]) => `<div class="card"><p class="lbl" style="margin-top:0">${t}</p>${h}</div>`).join("");
+
+// 價格狀態矩陣
+const ST = [["live", "即時", "≤ 15 秒"], ["delayed", "稍舊", "15–60 秒"], ["stale", "過期", "> 60 秒"], ["closed", "收盤", "休市／收盤後"], ["cut", "來源中斷", "disconnected"], ["nodata", "無資料", "no_data"]];
+document.getElementById("matrix").innerHTML = `<tr><th>狀態</th><th>列表</th><th>卡片</th><th>標題區</th><th>圖表</th></tr>` + ST.map(([k, n, d]) => {
+  const cls = k === "stale" ? "is-stale" : k === "cut" ? "is-cut" : "";
+  const nd = k === "nodata";
+  return `<tr class="${cls}"><td><b>${n}</b><br><span class="xs mu num">${d}</span></td>
+   <td style="width:34%">${qrow(D.TS01, { st: k })}</td>
+   <td><div class="row"><span class="px ${nd ? "mu2" : "up"}" style="font-size:22px">${nd ? "—" : "100.50"}</span>${nd ? "" : pill(D.TS01)}</div></td>
+   <td><div class="row">${k === "closed" ? statusTag("closed", "11/04 13:30") : statusTag(k)}${nd ? '<span class="xs mu">新上市或暫停交易</span>' : '<span class="num xs mu">10:41:05</span>'}</div></td>
+   <td class="xs mu">${{ live: "價格線＋最後點標籤（實心）", delayed: "同即時，最後點標籤琥珀框", stale: "最後點標籤變灰、虛線；不延伸到現在", closed: "完整收盤線；右上「收盤」", cut: "線停在中斷時刻＋橘色「來源中斷」提示條", nodata: "空圖＋「尚無資料」" }[k]}</td></tr>`;
+}).join("");
+
+// 畫面框
+function frame(el, s, w, h, scale, cap, extra = "") {
+  const kind = w < 600 ? "phone" : w < 1400 ? "tab" : "desk";
+  document.getElementById(el).insertAdjacentHTML("beforeend", `<div class="frame"><div class="dev ${kind}" style="width:${w * scale}px;height:${h * scale}px"><iframe loading="lazy" src="screen.html?s=${s}${extra}" width="${w}" height="${h}" style="transform:scale(${scale})" title="${cap}"></iframe></div><div class="cap">${cap}</div></div>`);
+}
+[["overview", "<b>總覽</b> · 盤中"], ["stock", "<b>個股</b> · 分時＋成本線＋警報線"], ["stock-k", "<b>個股</b> · 日 K＋十字游標浮層"], ["stock&press=1&tip=1", "<b>長按設警報</b>"], ["alert-new", "<b>新增警報</b> · 到價"], ["alerts", "<b>警報</b> · 依狀態分組"], ["watch", "<b>自選管理</b> · 搜尋、拖曳、滑動刪除"], ["settings", "<b>設定</b>"], ["overview&theme=light", "<b>總覽</b> · 淺色"], ["overview&colors=intl", "<b>綠漲紅跌</b>"]].forEach(([s, c]) => frame("phones", s, 390, 844, 0.62, c));
+frame("phones", "landscape", 844, 390, 0.62, "<b>手機橫向</b> · 圖表全螢幕");
+frame("ipads", "stock-k", 1366, 1024, 0.5, "<b>iPad 橫式</b> · 個股三欄");
+frame("ipads", "overview", 820, 1180, 0.45, "<b>iPad 直式</b> · 總覽");
+frame("ipads", "overview", 1366, 1024, 0.5, "<b>iPad 橫式</b> · 總覽");
+frame("ipads", "stock", 820, 1180, 0.45, "<b>iPad 直式</b> · 個股");
+frame("desks", "overview", 1440, 900, 0.48, "<b>總覽</b>");
+frame("desks", "stock", 1440, 900, 0.48, "<b>個股</b> · 分時");
+frame("desks", "alerts", 1440, 900, 0.48, "<b>警報＋通知紀錄</b>");
+frame("desks", "settings", 1440, 900, 0.48, "<b>設定</b>");
+frame("desks", "index", 1440, 900, 0.48, "<b>指數頁</b> · 沒有部位、量能用成交金額");
+frame("desks", "stock-k&theme=light", 1440, 900, 0.48, "<b>個股</b> · 淺色");
+[["loading", "<b>載入中</b> · 骨架"], ["overview-empty", "<b>空狀態</b> · 盤前、櫃買未開通"], ["offline", "<b>離線</b> · 新版本提示"], ["stock-gap", "<b>分時缺資料</b> · 自 10:42 起＋缺口"], ["stock-stale", "<b>來源中斷</b> · 過期價格"], ["alert-met", "<b>已滿足條件</b>＋登入過期"], ["overview&mkt=closed", "<b>休市</b> · 春節"]].forEach(([s, c]) => frame("stateframes", s, 390, 844, 0.55, c));
+["unsupported", "not_installed", "default", "granted", "revoked", "denied"].forEach((p) => frame("perms", "settings-notify&perm=" + p, 390, 844, 0.5, { unsupported: "不支援", not_installed: "尚未加入主畫面", default: "尚未允許", granted: "已啟用", revoked: "訂閱失效", denied: "已拒絕" }[p]));
+// 鎖屏
+const LK = [["示範半導體 TS01｜價格 ≥ 100.00", "現價 100.50（+2.55%）· 10:41 · 即時", "現在"], ["範例金融控股 TS02｜今日跌幅 ≤ −5%", "現價 23.80（−6.30%）· 11:02 · 延後補發", "2 分鐘前"], ["虛構電子 TS03｜爆量 ≥ 2 倍", "今日量 2.14 倍 · 現價 312.00（0.00%）· 10:05 · 即時", "36 分鐘前"], ["示範市值 ETF TE01｜下穿 20 日線", "現價 148.20（−0.87%）· 13:21 · 即時", "昨天"], ["樣本航運 TS04｜漲停", "現價 55.00（+10.00%）· 10:12 · 即時", "29 分鐘前"], ["看盤｜測試通知", "如果你看到這則，推播已經設定完成 · 10:41", "現在"]];
+document.getElementById("locks").insertAdjacentHTML("beforeend", LK.map(([t, b, w]) => `<div class="lock"><img class="ap" src="icon.svg" alt=""><div><b>${t}</b><br>${b}</div><small>${w}</small></div>`).join(""));
+</script>
+</body>
+</html>

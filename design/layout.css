@@ -1,0 +1,82 @@
+/*
+ * 版面：手機單欄＋底部分頁列；≥960px 左側 76px 圖示導覽列（與記帳 App 同結構）＋內容格線。
+ * 個股頁 ≥1180px 為三欄（清單 300｜圖表 1fr｜資訊 340）；960–1179px 為兩欄（圖表｜資訊），清單收進導覽。
+ */
+.app{display:flex;min-height:100vh}
+.main{flex:1;min-width:0;padding:0 var(--gutr) calc(96px + var(--sab)) var(--gut)}
+.wrapc{max-width:1320px;margin:0 auto}
+
+/* 頂部列 */
+.top{position:sticky;top:0;z-index:20;margin:0 calc(-1 * var(--gutr)) 0 calc(-1 * var(--gut));padding:calc(10px + var(--sat)) var(--gutr) 10px var(--gut);background:linear-gradient(var(--bg) 70%,transparent);}
+.top-in{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:10px;min-height:var(--tap)}
+.top .ttl{flex:1;min-width:0}
+.top .ttl .h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.back{display:inline-flex;align-items:center;gap:2px;min-height:var(--tap);padding:0 10px 0 4px;margin-left:-6px;border:0;background:transparent;color:var(--ac);font:600 15px var(--f-b);cursor:pointer;border-radius:var(--r-m)}
+
+/* 底部分頁列（手機） */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(5,1fr);padding:6px max(8px,env(safe-area-inset-left)) calc(6px + var(--sab)) max(8px,env(safe-area-inset-right));background:var(--glass);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid var(--ln)}
+.tabbar a,.tabbar button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:52px;color:var(--mu);font:600 11px/1 var(--f-b);border:0;background:transparent;cursor:pointer;position:relative;border-radius:var(--r-m)}
+.tabbar .on{color:var(--ac)}
+.tabbar .on .ic{filter:drop-shadow(0 0 6px var(--ac))}
+.tabbar .on::before{content:"";position:absolute;top:-7px;left:30%;right:30%;height:2px;border-radius:1px;background:var(--ac);box-shadow:0 0 8px var(--ac)}
+.tabbar .badge{top:2px;right:calc(50% - 22px)}
+
+/* 左側圖示導覽列（≥960px） */
+.rail{display:none}
+@media (min-width:960px){
+  .tabbar{display:none}
+  .rail{display:flex;flex-direction:column;align-items:center;gap:8px;position:sticky;top:0;height:100vh;width:76px;flex:none;padding:calc(14px + var(--sat)) 0 16px;background:var(--bg2);border-right:1px solid var(--ln)}
+  .rail .logo{width:44px;height:44px;margin-bottom:14px;border-radius:12px;display:block}
+  .rail a,.rail button{width:48px;height:48px;display:grid;place-items:center;border-radius:14px;color:var(--mu);border:1px solid transparent;background:transparent;cursor:pointer;position:relative}
+  .rail a:hover,.rail button:hover{color:var(--tx);background:var(--s2)}
+  .rail .on{color:var(--ac);background:var(--ac-soft);border-color:var(--ac-line);box-shadow:0 0 16px rgba(62,230,255,.15)}
+  .rail .fill{flex:1}
+  .rail .tip{position:absolute;left:58px;top:50%;transform:translateY(-50%);padding:6px 10px;border-radius:8px;background:var(--s3);color:var(--tx);font-size:12px;white-space:nowrap;opacity:0;pointer-events:none;transition:.12s;border:1px solid var(--ln2)}
+  .rail a:hover .tip,.rail a:focus-visible .tip,.rail button:hover .tip{opacity:1}
+  .main{padding-bottom:32px;padding-left:24px;padding-right:24px}
+  .top{margin:0 -24px;padding-left:24px;padding-right:24px}
+}
+
+/* 總覽格線 */
+.ov{display:grid;gap:16px}
+.ov-idx{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (min-width:960px){
+  .ov{grid-template-columns:minmax(0,1fr) 380px;align-items:start}
+  .ov > .full{grid-column:1/-1}
+  .ov-l,.ov-r{display:grid;gap:16px;min-width:0}
+}
+@media (min-width:1280px){.ov{grid-template-columns:minmax(0,1fr) 420px}}
+
+/* 個股頁 */
+.stk{display:grid;gap:16px}
+.stk-list{display:none}
+.stk-head{display:flex;flex-direction:column;gap:6px}
+.stk-head .pxl{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.stk-head .pxl .huge{line-height:1}
+.chart-card{padding:8px 8px 10px}
+.chart-main{height:300px}
+@media (min-width:960px){
+  .stk{grid-template-columns:minmax(0,1fr) 340px;align-items:start}
+  .stk-mid{min-width:0;display:grid;gap:16px}
+  .stk-side{display:grid;gap:16px;position:sticky;top:76px;max-height:calc(100vh - 92px);overflow:auto;scrollbar-width:thin}
+  .chart-main{height:440px}
+}
+@media (min-width:1180px){
+  .stk{grid-template-columns:300px minmax(0,1fr) 340px}
+  .stk-list{display:block;position:sticky;top:76px;max-height:calc(100vh - 92px);overflow:auto;scrollbar-width:thin}
+}
+/* 手機橫向：圖表全螢幕 */
+.fs{position:fixed;inset:0;z-index:70;background:var(--bg);padding:max(8px,var(--sat)) max(12px,env(safe-area-inset-right)) max(8px,var(--sab)) max(12px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:6px}
+.fs .chart-main{flex:1;height:auto}
+
+/* 雙欄（警報、設定在桌面） */
+.two{display:grid;gap:16px}
+@media (min-width:960px){.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}}
+.narrow{max-width:760px;margin:0 auto}
+.list-card .qrow{padding-left:12px;padding-right:12px}
+.sec-t{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:20px 4px 8px}
+.sec-t:first-child{margin-top:4px}
+.set-row{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 0;border-bottom:1px solid var(--ln)}
+.set-row:last-child{border-bottom:0}
+.set-row .grow b{display:block;font-weight:600;font-size:14px}
+.set-row .grow small{display:block;color:var(--mu);font-size:12px;margin-top:2px}

@@ -1,0 +1,131 @@
+/*
+ * 看盤 App 設計 tokens（設計系統的唯一來源；前端 src/styles.css 直接 @import 這份）
+ * 風格：「Quant Grid」— 深海軍藍黑底、髮絲線格點、青色／紫色 AI 光暈、等寬數字。
+ * 變數名稱與記帳 App（Finova）相同：--bg --s1 --s2 --s3 --ln --ln2 --tx --mu --ac …，圓角 8／12／18 也相同。
+ *
+ * 主題：:root（深色，預設）、[data-theme="light"]、prefers-color-scheme: light（theme=system）。
+ * 顏色慣例：[data-colors="intl"] 綠漲紅跌；預設紅漲綠跌（台灣慣例）。--up／--dn 是語意，不是顏色。
+ */
+:root{
+  /* ── 底與表面 ── */
+  --bg:#05070D;              /* App 底色：近黑的深海軍藍 */
+  --bg2:#080C18;             /* 側欄、底部分頁列 */
+  --grid:rgba(96,140,255,.045);  /* 24px 量測格點 */
+  --halo:radial-gradient(1200px 520px at 18% -10%,rgba(62,230,255,.10),transparent 60%),radial-gradient(900px 480px at 100% 0%,rgba(139,124,255,.10),transparent 60%);
+  --s1:#0A0F1E;              /* 卡片 */
+  --s2:#0F1629;              /* 卡片內的區塊、輸入框 */
+  --s3:#162038;              /* hover、選取 */
+  --glass:rgba(12,18,36,.72);/* 浮層（毛玻璃） */
+  --ln:rgba(120,160,255,.12);    /* 髮絲線 */
+  --ln2:rgba(120,160,255,.24);   /* 強調線、輸入框框線 */
+
+  /* ── 文字 ── */
+  --tx:#E7EEFF;              /* 主要文字、即時價格 */
+  --mu:#8C99BA;              /* 次要文字 */
+  --mu2:#5A6687;             /* 第三層：格線標籤、過期價格 */
+
+  /* ── 品牌（AI 光） ── */
+  --ac:#3EE6FF;              /* 主色：青 */
+  --ac2:#8B7CFF;             /* 副色：紫 */
+  --ac-ink:#02141A;          /* 主色按鈕上的字 */
+  --ac-soft:rgba(62,230,255,.12);
+  --ac-line:rgba(62,230,255,.45);
+  --ac-grad:linear-gradient(135deg,#3EE6FF 0%,#6FA8FF 50%,#8B7CFF 100%);
+  --glow:0 0 0 1px rgba(62,230,255,.35),0 0 24px rgba(62,230,255,.18);
+
+  /* ── 漲跌（語意） ── 紅漲綠跌（預設） */
+  --rise:#FF4D6A; --fall:#14D98A;
+  --up:var(--rise); --dn:var(--fall); --flat:#A3AECB;
+  --up-soft:rgba(255,77,106,.14); --dn-soft:rgba(20,217,138,.14);
+  --up-ink:#FFFFFF; --dn-ink:#00170D;
+
+  /* ── 狀態 ── */
+  --wa:#FFB547; --wa-soft:rgba(255,181,71,.14);    /* 稍舊、警告 */
+  --cut:#FF8A3D; --cut-soft:rgba(255,138,61,.14);  /* 來源中斷、錯誤（刻意不用紅色，避免和「上漲」混淆） */
+  --ok:#3EE6FF;                                    /* 成功、已啟用（品牌青） */
+  --dg:#FF6B81; --dg-ink:#1A0006;                  /* 刪除（只用在破壞性按鈕，一定搭配文字） */
+
+  /* ── 圖表 ── */
+  --ch-grid:rgba(120,160,255,.08);
+  --ch-axis:#5A6687;
+  --ch-line:#3EE6FF;               /* 分時價格線 */
+  --ch-fill-top:rgba(62,230,255,.22); --ch-fill-bot:rgba(62,230,255,0);
+  --ch-prev:#8C99BA;               /* 昨收參考線 */
+  --ch-limit:rgba(255,181,71,.55); /* 漲跌停範圍 */
+  --ch-cost:#8B7CFF;               /* 我的平均成本線 */
+  --ch-alert:#FFB547;              /* 警報價位線 */
+  --ma5:#FFD166; --ma10:#FF8FD8; --ma20:#3EE6FF; --ma60:#A78BFA;
+  --ind1:#3EE6FF; --ind2:#FFB547; --ind3:#A78BFA;   /* K／D／J、DIF／DEA、RSI */
+  --cross:rgba(231,238,255,.55);
+
+  /* ── 其他 ── */
+  --scrim:rgba(1,3,10,.66); --shadow:0 24px 60px rgba(0,0,0,.55); --skel:#111a30; --skel2:#18233f;
+
+  /* ── 字型 ── 和記帳 App 同樣是 Manrope＋Noto Sans TC；數字改用等寬 JetBrains Mono（科技感＋對齊） */
+  --f-d:'Manrope','Noto Sans TC',system-ui,sans-serif;
+  --f-b:'Noto Sans TC','Manrope',system-ui,-apple-system,'PingFang TC','Microsoft JhengHei',sans-serif;
+  --f-m:'JetBrains Mono','SF Mono',ui-monospace,'Menlo',monospace;
+
+  /* ── 尺寸 ── */
+  --r-s:8px; --r-m:12px; --r-l:18px; --r-pill:999px;
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px;
+  --tap:44px;
+
+  /* 安全區域 */
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --gut:max(16px,env(safe-area-inset-left,0px)); --gutr:max(16px,env(safe-area-inset-right,0px));
+  color-scheme:dark;
+}
+
+/* 淺色：冷白「實驗室」— 同樣的青紫，但壓深以達到對比 */
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#F2F5FB; --bg2:#E9EEF8; --grid:rgba(30,60,140,.05);
+    --halo:radial-gradient(1200px 520px at 18% -10%,rgba(0,150,200,.08),transparent 60%),radial-gradient(900px 480px at 100% 0%,rgba(100,80,230,.07),transparent 60%);
+    --s1:#FFFFFF; --s2:#F5F8FD; --s3:#E8EEF9; --glass:rgba(255,255,255,.82);
+    --ln:rgba(20,40,100,.10); --ln2:rgba(20,40,100,.20);
+    --tx:#0A1330; --mu:#56627F; --mu2:#8D97B0;
+    --ac:#0088B8; --ac2:#5B4BDB; --ac-ink:#FFFFFF; --ac-soft:rgba(0,136,184,.10); --ac-line:rgba(0,136,184,.45);
+    --ac-grad:linear-gradient(135deg,#00A3D6 0%,#3D7BEA 50%,#5B4BDB 100%);
+    --glow:0 0 0 1px rgba(0,136,184,.30),0 6px 18px rgba(0,100,160,.14);
+    --rise:#D81E40; --fall:#058A52; --flat:#6B7591;
+    --up-soft:rgba(216,30,64,.09); --dn-soft:rgba(5,138,82,.10); --dn-ink:#FFFFFF;
+    --wa:#A76400; --wa-soft:rgba(200,120,0,.12); --cut:#C2510A; --cut-soft:rgba(194,81,10,.10); --ok:#0088B8;
+    --dg:#C4213D; --dg-ink:#FFFFFF;
+    --ch-grid:rgba(20,40,100,.07); --ch-axis:#8D97B0; --ch-line:#0088B8;
+    --ch-fill-top:rgba(0,136,184,.16); --ch-fill-bot:rgba(0,136,184,0); --ch-prev:#6B7591; --ch-limit:rgba(167,100,0,.5);
+    --ch-cost:#5B4BDB; --ch-alert:#B86E00;
+    --ma5:#C48A00; --ma10:#C2408F; --ma20:#0088B8; --ma60:#6D4FD8;
+    --ind1:#0088B8; --ind2:#B86E00; --ind3:#6D4FD8; --cross:rgba(10,19,48,.45);
+    --scrim:rgba(10,20,50,.32); --shadow:0 24px 60px rgba(20,40,100,.16); --skel:#E6ECF6; --skel2:#DCE4F2;
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+    --bg:#F2F5FB; --bg2:#E9EEF8; --grid:rgba(30,60,140,.05);
+    --halo:radial-gradient(1200px 520px at 18% -10%,rgba(0,150,200,.08),transparent 60%),radial-gradient(900px 480px at 100% 0%,rgba(100,80,230,.07),transparent 60%);
+    --s1:#FFFFFF; --s2:#F5F8FD; --s3:#E8EEF9; --glass:rgba(255,255,255,.82);
+    --ln:rgba(20,40,100,.10); --ln2:rgba(20,40,100,.20);
+    --tx:#0A1330; --mu:#56627F; --mu2:#8D97B0;
+    --ac:#0088B8; --ac2:#5B4BDB; --ac-ink:#FFFFFF; --ac-soft:rgba(0,136,184,.10); --ac-line:rgba(0,136,184,.45);
+    --ac-grad:linear-gradient(135deg,#00A3D6 0%,#3D7BEA 50%,#5B4BDB 100%);
+    --glow:0 0 0 1px rgba(0,136,184,.30),0 6px 18px rgba(0,100,160,.14);
+    --rise:#D81E40; --fall:#058A52; --flat:#6B7591;
+    --up-soft:rgba(216,30,64,.09); --dn-soft:rgba(5,138,82,.10); --dn-ink:#FFFFFF;
+    --wa:#A76400; --wa-soft:rgba(200,120,0,.12); --cut:#C2510A; --cut-soft:rgba(194,81,10,.10); --ok:#0088B8;
+    --dg:#C4213D; --dg-ink:#FFFFFF;
+    --ch-grid:rgba(20,40,100,.07); --ch-axis:#8D97B0; --ch-line:#0088B8;
+    --ch-fill-top:rgba(0,136,184,.16); --ch-fill-bot:rgba(0,136,184,0); --ch-prev:#6B7591; --ch-limit:rgba(167,100,0,.5);
+    --ch-cost:#5B4BDB; --ch-alert:#B86E00;
+    --ma5:#C48A00; --ma10:#C2408F; --ma20:#0088B8; --ma60:#6D4FD8;
+    --ind1:#0088B8; --ind2:#B86E00; --ind3:#6D4FD8; --cross:rgba(10,19,48,.45);
+    --scrim:rgba(10,20,50,.32); --shadow:0 24px 60px rgba(20,40,100,.16); --skel:#E6ECF6; --skel2:#DCE4F2;
+    color-scheme:light;
+}
+
+/* 綠漲紅跌（國際慣例）：只交換語意，不改其他顏色 */
+:root[data-colors="intl"]{
+  --up:var(--fall); --dn:var(--rise);
+  --up-soft:rgba(20,217,138,.14); --dn-soft:rgba(255,77,106,.14);
+  --up-ink:#00170D; --dn-ink:#FFFFFF;
+}
