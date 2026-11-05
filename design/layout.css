@@ -58,6 +58,7 @@
 @media (min-width:960px){
   .stk{grid-template-columns:minmax(0,1fr) 340px;align-items:start}
   .stk-mid{min-width:0;display:grid;gap:16px}
+  .stk-side .dl{grid-template-columns:minmax(0,1fr)}
   .stk-side{display:grid;gap:16px;position:sticky;top:76px;max-height:calc(100vh - 92px);overflow:auto;scrollbar-width:thin}
   .chart-main{height:440px}
 }

@@ -130,8 +130,9 @@ a{color:var(--ac);text-decoration:none}
 .qrow:last-child{border-bottom:0}
 .qrow:hover{background:linear-gradient(90deg,transparent,var(--ac-soft),transparent)}
 .qrow .nm{font-weight:600;font-size:15px}
-.qrow .sub{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mu);margin-top:3px;min-width:0;white-space:nowrap;overflow:hidden}
-.qrow .sub > *{flex:none}
+/* 代號、股數、狀態標籤不截斷：放不下就換行（只有名稱用省略號） */
+.qrow .sub{display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px;font-size:12px;color:var(--mu);margin-top:3px;min-width:0}
+.qrow .sub > *{flex:none;white-space:nowrap}
 .qrow .sub .num{color:var(--mu)}
 .qrow .sp{height:28px}
 .qrow .rt{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
@@ -154,18 +155,19 @@ a{color:var(--ac);text-decoration:none}
 .kpi.lead{grid-column:1/-1}
 .kpi.lead .v{font-size:30px}
 .dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;margin:0}
-.dl > div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--ln);min-width:0}
+.dl > div{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 8px;padding:9px 0;border-bottom:1px solid var(--ln);min-width:0}
 .dl dt{font-size:13px;color:var(--mu);white-space:nowrap}
-.dl dd{margin:0;font:500 14px/1.2 var(--f-m);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dl dd{margin:0 0 0 auto;font:500 14px/1.2 var(--f-m);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
 
 /* ── 分段控制 ── */
-.seg{display:inline-flex;padding:3px;gap:2px;border-radius:var(--r-m);background:var(--s2);border:1px solid var(--ln);max-width:100%;overflow-x:auto;scrollbar-width:none}
+.seg{display:inline-flex;padding:0 2px;gap:0;border-radius:var(--r-m);background:var(--s2);border:1px solid var(--ln);max-width:100%;overflow-x:auto;scrollbar-width:none}
 .seg::-webkit-scrollbar{display:none}
-.seg button{min-height:36px;min-width:52px;padding:0 12px;border:0;border-radius:9px;background:transparent;color:var(--mu);font:600 13px/1 var(--f-b);cursor:pointer;white-space:nowrap}
+/* 點擊區 44px（SPEC §8）：上下 4px 透明邊框，視覺上仍是 36px 的膠囊 */
+.seg button{min-height:44px;min-width:52px;padding:0 12px;border:solid transparent;border-width:4px 1px;background-clip:padding-box;border-radius:12px;background:transparent;color:var(--mu);font:600 13px/1 var(--f-b);cursor:pointer;white-space:nowrap}
 .seg button[aria-pressed="true"],.seg button.on{background:var(--s3);color:var(--tx);box-shadow:inset 0 0 0 1px var(--ac-line),0 0 12px rgba(62,230,255,.12)}
 .seg.wide{display:flex}.seg.wide button{flex:1}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{min-height:32px;padding:0 10px;border-radius:var(--r-pill);border:1px solid var(--ln2);background:transparent;color:var(--mu);font:600 12px/1 var(--f-m);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chips{display:flex;gap:12px 6px;flex-wrap:wrap}
+.chip{min-height:32px;min-width:44px;justify-content:center;padding:0 10px;border-radius:var(--r-pill);border:1px solid var(--ln2);background:transparent;color:var(--mu);font:600 12px/1 var(--f-m);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .chip .sw{width:8px;height:8px;border-radius:2px}
 .chip[aria-pressed="true"],.chip.on{color:var(--tx);border-color:var(--ac-line);background:var(--ac-soft)}
 
@@ -271,3 +273,13 @@ a{color:var(--ac);text-decoration:none}
 .ch-note{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--wa)}
 .legend{display:flex;gap:10px;flex-wrap:wrap;font:500 11px/1 var(--f-m);color:var(--mu)}
 .legend i{display:inline-block;width:10px;height:2px;vertical-align:middle;margin-right:4px;border-radius:1px}
+
+/* ── 點擊區 ≥ 44×44（SPEC §8）──
+   視覺尺寸不變，用透明的 ::before 往外擴；elementFromPoint 落在偽元素上仍是該元素。 */
+.btn.sm,.link,.chip,.al .ai,.tg{position:relative}
+.btn.sm::before,.link::before,.chip::before,.al .ai::before,.tg::before{content:"";position:absolute}
+.btn.sm::before{inset:-4px 0}
+.link::before{inset:-6px -4px;min-width:44px}
+.chip::before{inset:-6px 0}
+.al .ai::before{inset:-2px}
+.tg::before{inset:-8px -2px}
