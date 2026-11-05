@@ -17,7 +17,7 @@ iPhone／iPad／桌面的看盤 Web App（iOS「加入主畫面」）：持倉�
 | 文件 | 內容 |
 |---|---|
 | [`design/DESIGN.md`](design/DESIGN.md) | 設計稿「Quant Grid」：設計系統、畫面、狀態、圖表規格、通知、與記帳 App 的一致與不同 |
-| `design/mockups.html` | 設計板（`npx serve design` 後開啟） |
+| `design/mockups.html` | 設計板（在 repo 根目錄 `npx serve .` 後開啟 `/design/mockups.html`） |
 | [`docs/SPEC.md`](docs/SPEC.md) | 功能規格 |
 | [`docs/FRONTEND-CONTRACT.md`](docs/FRONTEND-CONTRACT.md) | API 型別與規則（凍結） |
 | [`docs/DESIGN-BRIEF.md`](docs/DESIGN-BRIEF.md) | 設計需求 |
@@ -38,8 +38,8 @@ npm run dev
 |---|---|
 | `npm run dev` | mock 模式 |
 | `npm run dev:api` | 不載入 mock，`/api` 轉送到 `.env.api` 的 `VITE_API_TARGET` |
-| `npm test` | 單元測試（格式、十進位金額、升降單位、指標、路由、mock 契約涵蓋） |
-| `npm run build` | 正式版（不含 mock；CI 會檢查） |
+| `npm test` | 單元測試（格式、十進位金額、升降單位、指標、路由、HTTP 錯誤分類、輪詢、service worker、分時軸、mock 契約涵蓋） |
+| `npm run build` | 正式版（不含 mock；CI 會檢查，並以含 mock 的預覽版做對照）。建置時把 build id 與 shell 檔案清單寫進 `dist/sw.js`，每次發版位元組都不同 |
 | `npm run build:preview` | 單一 HTML 預覽版 `dist-preview/stocks-preview.html`（含 mock、記憶體路由） |
 | `npm run icons` | 由 `design/icon.svg` 產生 PNG 圖示 |
 
@@ -47,10 +47,12 @@ npm run dev
 
 設定頁最下方「開發用 Mock」，或網址參數：
 
-- `?mock=` `slow`（骨架）、`auth`（401 登入過期）、`validation`（下一次寫入 422）、`version`（409）、`rate`（429＋Retry-After）、`down`（行情 503）、`offline`
+- `?mock=` `slow`（骨架）、`auth`（401 登入過期）、`validation`（下一次寫入 422）、`version`（409）、`rate`（429＋Retry-After）、`down`（行情 503 JSON）、`proxy502`（隧道回 HTML 502）、`offline`
 - `?session=` `open`、`pre_open`、`closing_auction`、`post`、`closed`（休市）
 - `?push=` `unsupported`、`not_installed`、`default`、`granted`、`revoked`、`denied`
-- `?empty=1`（沒有持倉、自選、警報）、`?extreme=1`（4 位數價格、億元損益）、`?nodevices=1`
+- `?empty=1`（沒有持倉、自選、警報）、`?extreme=1`（4 位數價格、億元損益）、`?nodevices=1`、`?adjusted=1`（後端支援還原權息，可切換 `adjust=forward`）、`?halfday=1`（半天交易日，分時 09:00–12:00）
+
+**網址優先**：網址上只要有任何一個上述參數，mock 狀態就完全依網址決定，沒寫到的回到預設（例如先開 `?empty=1` 再開 `?extreme=1`，不會殘留空狀態）。網址上都沒有時，才沿用同一分頁上次在面板選的狀態（存在 `sessionStorage` 的 `sw-mock`）。
 
 固定涵蓋的商品狀態：TS01 即時、TS02 過期、TS03 稍舊（分時自 10:42 起）、TS04 漲停、TS05 跌停、TS06 來源中斷、TS07 無資料（K 線範圍不足）、TS08 暫停交易、TS09 長名稱＋4 位數價格、TE01 分時有缺口。
 
@@ -65,7 +67,8 @@ src/
   views/         總覽、個股／指數、自選、持倉、警報、新增警報、通知紀錄、設定、通知設定
   poll.ts        輪詢（可見才輪詢、依市場時段、429／退避）
 mocks/           mock 後端（固定種子隨機漫步的 K 線、分時）
-public/sw.js     service worker（App shell 快取、推播、通知點擊）
+public/sw.js     service worker（App shell 快取、推播、通知點擊）；scripts/sw-build.mjs 在建置時寫入版本
+src/assets/fonts 自行託管的 Manrope／JetBrains Mono（拉丁子集，SIL OFL）
 ```
 
 ## 已實作的重點

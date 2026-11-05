@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { flags, handle, resetDb } from "../mocks/handlers";
+import { adjustForward, DEFAULT_FLAGS, flags, handle, resetDb } from "../mocks/handlers";
 
 const get = (p: string, q: Record<string, string> = {}) => handle("GET", p, q, undefined) as any;
 const post = (p: string, b: unknown, h: Record<string, string> = {}) => handle("POST", p, {}, b, h) as any;
 
-beforeEach(() => { Object.assign(flags, { session: "open", empty: false, extreme: false, noDevices: false, tpexDown: false }); resetDb(); });
+beforeEach(() => { Object.assign(flags, DEFAULT_FLAGS); resetDb(); });
 
 describe("mock contract coverage (§7)", () => {
   it("has every quote status and special prices", () => {
@@ -66,5 +66,35 @@ describe("mock contract coverage (§7)", () => {
     expect(ev.some((e: any) => e.deliveries.some((d: any) => d.state === "failed"))).toBe(true);
     const r = handle("PATCH", "/watchlists/wl_default", {}, { expected_version: 99, name: "x" }) as any;
     expect(r.status).toBe(409);
+  });
+});
+
+describe("還原權息（?adjusted=1，issue #9）", () => {
+  it("adjusted_bars 預設 false；開啟旗標後回 true，adjust=forward 的舊 K 線價格較低", () => {
+    expect(get("/bootstrap").body.data.capabilities.adjusted_bars).toBe(false);
+    const none = get("/bars/TS01", { interval: "1d", limit: "600" }).body.data;
+    // 旗標關閉時要求 forward 仍回 none（後端不支援）
+    expect(get("/bars/TS01", { interval: "1d", limit: "600", adjust: "forward" }).body.data.adjust).toBe("none");
+    flags.adjusted = true;
+    expect(get("/bootstrap").body.data.capabilities.adjusted_bars).toBe(true);
+    const fwd = get("/bars/TS01", { interval: "1d", limit: "600", adjust: "forward" }).body.data;
+    expect(fwd.adjust).toBe("forward");
+    expect(fwd.bars.length).toBe(none.bars.length);
+    expect(fwd.bars.at(-1).c).toBe(none.bars.at(-1).c); // 最近一根不動
+    expect(fwd.bars[0].c).toBeLessThan(none.bars[0].c);  // 除息日之前向下還原
+  });
+  it("指數不還原", () => {
+    flags.adjusted = true;
+    const bars = get("/bars/TAIEX", { interval: "1d", limit: "300" }).body.data.bars;
+    expect(adjustForward(bars, "TAIEX")).toEqual(bars);
+  });
+});
+
+describe("半天交易日（?halfday=1，issue #7）", () => {
+  it("session_end 為 12:00，點不超過 12:00", () => {
+    flags.halfDay = true;
+    const d = get("/intraday/TS01").body.data;
+    expect(d.session_end.slice(11, 16)).toBe("12:00");
+    expect(d.points.every((p: any) => p.t.slice(11, 16) <= "12:00")).toBe(true);
   });
 });

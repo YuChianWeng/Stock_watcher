@@ -22,7 +22,7 @@ export function searchRows(rows: SearchRow[], opt: { addLabel?: string; inList?:
 }
 
 export function openSearch() {
-  const s = openSheet("搜尋", `<div class="field"><div style="position:relative"><input class="input" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="characters" placeholder="代號或名稱，例如 TS01、示範" style="padding-left:40px" aria-label="搜尋代號或名稱"><span class="mu" style="position:absolute;left:12px;top:12px">${ic("search")}</span></div></div><div class="qlist" data-res style="margin-top:8px;min-height:120px"></div>`);
+  const s = openSheet("搜尋", `<div class="field"><div style="position:relative"><input class="input" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="characters" placeholder="輸入代號或名稱" style="padding-left:40px" aria-label="搜尋代號或名稱"><span class="mu" style="position:absolute;left:12px;top:12px">${ic("search")}</span></div></div><div class="qlist" data-res style="margin-top:8px;min-height:120px"></div>`);
   const input = s.body.querySelector("input")!, res = s.body.querySelector("[data-res]") as HTMLElement;
   let t = 0, q = "";
   const run = async () => {

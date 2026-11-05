@@ -88,7 +88,7 @@ const view: View = ({ el, setTop, alive }) => {
     const items = wl?.items ?? [];
     return `<section class="card list-card" aria-label="自選"><div class="card-h"><h2 class="h2">自選</h2><a class="ibtn bare" href="${href("/watch")}" aria-label="管理自選">${ic("edit")}</a></div>
       ${wls.length > 1 ? `<div class="seg" role="group" aria-label="自選清單" style="margin-bottom:8px">${wls.map((w) => `<button type="button" data-wl="${esc(w.watchlist_id)}" aria-pressed="${w === wl}">${esc(w.name)}</button>`).join("")}</div>` : ""}
-      ${items.length ? `<div class="qlist">${items.map((i) => qrow(i.symbol, i.name, i.quote, i.spark)).join("")}</div>` : empty("star", "這份清單是空的", "搜尋代號或名稱，例如「TS01」或「示範」。", `<button class="btn o" type="button" data-search>${ic("plus", "s")}加入自選</button>`)}</section>`;
+      ${items.length ? `<div class="qlist">${items.map((i) => qrow(i.symbol, i.name, i.quote, i.spark)).join("")}</div>` : empty("star", "這份清單是空的", "用代號或名稱搜尋，加入想看的商品。", `<button class="btn o" type="button" data-search>${ic("plus", "s")}加入自選</button>`)}</section>`;
   };
 
   const load = async () => {
