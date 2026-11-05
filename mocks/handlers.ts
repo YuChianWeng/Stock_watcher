@@ -17,8 +17,9 @@ export const fail = (status: number, code: string, message: string, details: unk
 
 // ── 情境 ──
 export type MockSession = "open" | "pre_open" | "closing_auction" | "post" | "closed";
-export type MockFlags = { session: MockSession; empty: boolean; extreme: boolean; noDevices: boolean; tpexDown: boolean };
-export const flags: MockFlags = { session: "open", empty: false, extreme: false, noDevices: false, tpexDown: false };
+export type MockFlags = { session: MockSession; empty: boolean; extreme: boolean; noDevices: boolean; tpexDown: boolean; adjusted: boolean; halfDay: boolean };
+export const DEFAULT_FLAGS: Readonly<MockFlags> = { session: "open", empty: false, extreme: false, noDevices: false, tpexDown: false, adjusted: false, halfDay: false };
+export const flags: MockFlags = { ...DEFAULT_FLAGS };
 
 const TODAY = "2026-11-04", PREV_DAY = "2026-11-03";
 const SESSION_NOW: Record<MockSession, string> = {
@@ -154,6 +155,27 @@ function daily(sym: string): Bar[] {
   if (lb.partial && q.last != null) { lb.c = q.last; lb.h = Math.max(lb.h, q.last); lb.l = Math.min(lb.l, q.last); }
   return b;
 }
+/**
+ * 向前還原（mock）：每年 7 月第一個交易日視為除息日，股利固定為除息前收盤的 3%（ETF 4%），
+ * 除息日之前的 OHLC 乘上累積還原因子；指數不還原。
+ */
+export function adjustForward(bars: Bar[], sym: string): Bar[] {
+  const d = DEF.get(sym)!;
+  if (d.kind === "index") return bars;
+  const yieldPct = d.kind === "etf" ? 0.04 : 0.03;
+  const out = bars.map((b) => ({ ...b }));
+  let factor = 1;
+  for (let i = out.length - 1; i > 0; i--) {
+    const exDiv = out[i].t.slice(5, 7) === "07" && out[i - 1].t.slice(5, 7) === "06";
+    if (exDiv) factor *= 1 - yieldPct;
+    if (factor !== 1) {
+      const b = out[i - 1], k = factor, snap = (v: number) => snapPrice(v * k, d.kind);
+      b.o = snap(b.o); b.h = snap(b.h); b.l = snap(b.l); b.c = snap(b.c);
+    }
+  }
+  return out;
+}
+
 export function sparkOf(sym: string): Spark | null {
   const d = DEF.get(sym)!;
   if (statusOf(d) === "no_data") return null;
@@ -343,7 +365,7 @@ function route(method: string, path: string, query: Record<string, string>, body
   if (method === "GET") {
     if (path === "/bootstrap") return ok({
       server_time: MOCK_NOW(), app_version: "1.0.0", market_status: marketStatus(), prefs: db.prefs,
-      capabilities: { intraday: true, adjusted_bars: false, corporate_actions: false, max_watch_items: 200, max_watchlists: 10, max_alerts: 100, poll_ms: { open: 5000, closed: 60000 } },
+      capabilities: { intraday: true, adjusted_bars: flags.adjusted, corporate_actions: false, max_watch_items: 200, max_watchlists: 10, max_alerts: 100, poll_ms: { open: 5000, closed: 60000 } },
       channels: { push: { vapid_public_key: "BMockVapidPublicKeyOnlyForDevelopment0000000000000000000000000000000000000000000000000" }, telegram: { connected: true } },
     } satisfies Bootstrap);
     if (path === "/overview") {
@@ -374,7 +396,8 @@ function route(method: string, path: string, query: Record<string, string>, body
       if (!DEF.has(s)) return fail(404, "SYMBOL_UNKNOWN", "找不到這個代號");
       const interval = (query.interval || "1d") as "1d" | "1w" | "1M";
       const limit = Math.min(1000, Number(query.limit) || 300);
-      let all = daily(s);
+      const adjust = flags.adjusted && query.adjust === "forward" ? "forward" : "none";
+      let all = adjust === "forward" ? adjustForward(daily(s), s) : daily(s);
       if (interval !== "1d") all = aggregate(all, interval);
       const to = query.to;
       const upto = to ? all.filter((b) => b.t <= to) : all;
@@ -382,7 +405,7 @@ function route(method: string, path: string, query: Record<string, string>, body
       const earliest = all[0]?.t ?? null;
       const truncated = upto.length < limit;
       if (truncated && !to && query.allow_partial !== "1") return fail(422, "INSUFFICIENT_HISTORY", "K 線資料範圍不足", [{ field: "limit", reason: "可得資料不足", earliest: earliest }]);
-      return ok({ symbol: s, interval, adjust: query.adjust || "none", bars: slice, coverage: { requested_from: null, actual_from: slice[0]?.t ?? null, actual_to: slice.at(-1)?.t ?? null, complete: !truncated, truncated, reason: truncated ? "可得資料自 " + earliest + " 起" : null }, has_more_before: upto.length > limit, as_of: MOCK_NOW() });
+      return ok({ symbol: s, interval, adjust, bars: slice, coverage: { requested_from: null, actual_from: slice[0]?.t ?? null, actual_to: slice.at(-1)?.t ?? null, complete: !truncated, truncated, reason: truncated ? "可得資料自 " + earliest + " 起" : null }, has_more_before: upto.length > limit, as_of: MOCK_NOW() });
     }
     if ((r = m(/^\/intraday\/([^/]+)$/))) {
       const s = decodeURIComponent(r[1]);
@@ -394,7 +417,10 @@ function route(method: string, path: string, query: Record<string, string>, body
       if (s === "TS03") { pts = pts.filter((p) => p.t.slice(11, 16) >= "10:42"); from = pts[0]?.t ?? null; complete = false; reason = "新加入追蹤，分時線自 10:42 起"; }
       if (s === "TE01" || s === "TAIEX") { const a = "10:05", b = "10:20"; pts = pts.filter((p) => { const hm = p.t.slice(11, 16); return hm < a || hm >= b; }); gaps.push({ from: `${lastDate()}T${a}:00+08:00`, to: `${lastDate()}T${b}:00+08:00` }); complete = false; reason = "伺服器重啟，10:05–10:20 沒有資料"; }
       if (s === "TS06") { complete = false; reason = "行情來源中斷"; }
-      return ok({ symbol: s, date: lastDate(), prev_close: d.prev || null, limit_up: q.limit_up, limit_down: q.limit_down, session_start: `${lastDate()}T09:00:00+08:00`, session_end: `${lastDate()}T13:30:00+08:00`, points: pts, coverage: { from, complete, reason, gaps }, as_of: MOCK_NOW() });
+      // 半天交易日（?halfday=1）：收盤 12:00，前端軸標籤要跟著伺服器給的時段（F-8）
+      const end = flags.halfDay ? "12:00" : "13:30";
+      if (flags.halfDay) pts = pts.filter((p) => p.t.slice(11, 16) <= end);
+      return ok({ symbol: s, date: lastDate(), prev_close: d.prev || null, limit_up: q.limit_up, limit_down: q.limit_down, session_start: `${lastDate()}T09:00:00+08:00`, session_end: `${lastDate()}T${end}:00+08:00`, points: pts, coverage: { from, complete, reason, gaps }, as_of: MOCK_NOW() });
     }
     if (path === "/portfolio") { const hs = holdings(); return ok({ summary: summary(hs), holdings: hs }); }
     if (path === "/trades") { const rows = db.trades.filter((t) => !query.symbol || t.symbol === query.symbol).sort((a, b) => b.trade_date.localeCompare(a.trade_date)); return ok({ rows, next_cursor: null }); }

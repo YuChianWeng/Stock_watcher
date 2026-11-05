@@ -5,15 +5,20 @@
  * - push：無論如何都要 showNotification（否則 Safari 會撤銷權限）。
  * - notificationclick：App 已開著就聚焦並 postMessage 導向，否則開新視窗。
  */
-const VERSION = "stocks-v1";
-const SHELL = `${VERSION}-shell`;
+// 建置時由 vite.config.ts（scripts/sw-build.mjs）把 build id 與 shell 檔案清單寫進來：
+// 每次發版 sw.js 的位元組都不同 → 瀏覽器觸發 updatefound → 前端顯示「有新版本」。
+const BUILD_ID = "__BUILD_ID__";
+const SHELL_FILES = /*__SHELL_FILES__*/[];
 const BASE = "/stocks/";
+const SHELL = `stocks-${BUILD_ID}-shell`;
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(SHELL).then((c) => c.addAll([BASE, BASE + "manifest.webmanifest", BASE + "icon.svg", BASE + "icon-192.png", BASE + "apple-touch-icon.png"]).catch(() => {})));
+  const files = [BASE, ...SHELL_FILES.map((f) => BASE + f)];
+  e.waitUntil(caches.open(SHELL).then((c) => c.addAll(files)).catch(() => {}));
 });
+// 只保留目前版本的快取（舊版帶 hash 的檔案一併清掉）
 self.addEventListener("activate", (e) => {
-  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => !k.startsWith(VERSION)).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith("stocks-") && k !== SHELL).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
 // 新版本在背景下載；前端提示「有新版本，重新開啟套用」，下次開啟時生效
 self.addEventListener("message", (e) => { if (e.data === "skip-waiting") self.skipWaiting(); });
@@ -40,6 +45,7 @@ self.addEventListener("fetch", (e) => {
 self.addEventListener("push", (e) => {
   let p = {};
   try { p = e.data ? e.data.json() : {}; } catch { p = {}; }
+  if (!p || typeof p !== "object") p = {};
   const title = typeof p.title === "string" && p.title ? p.title : "看盤警報";
   const opts = {
     body: typeof p.body === "string" ? p.body : "有新的警報通知",

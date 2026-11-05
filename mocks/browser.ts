@@ -2,18 +2,19 @@
  * 在瀏覽器內攔截 fetch('/api/watch/*')，交給 handlers.ts 回應（開發與單檔預覽用，不需要 service worker）。
  * 情境（契約 §7 必須涵蓋）：設定頁的「開發用 Mock」面板，或網址加 ?mock=<情境>&session=<時段>&push=<權限>
  */
-import { handle, fail, flags, resetDb, type MockFlags, type MockResponse, type MockSession } from "./handlers";
+import { handle, fail, flags, resetDb, DEFAULT_FLAGS, type MockFlags, type MockResponse, type MockSession } from "./handlers";
 
-export type Scenario = "none" | "slow" | "auth" | "validation" | "version" | "rate" | "down" | "offline";
+export type Scenario = "none" | "slow" | "auth" | "validation" | "version" | "rate" | "down" | "proxy502" | "offline";
 export const SCENARIOS: [Scenario, string][] = [
   ["none", "正常"], ["slow", "延遲 1.5 秒（骨架）"], ["auth", "登入過期（401）"], ["validation", "下一次寫入 422"],
-  ["version", "下一次修改 409"], ["rate", "下一次讀取 429"], ["down", "行情 503（來源中斷）"], ["offline", "離線"],
+  ["version", "下一次修改 409"], ["rate", "下一次讀取 429"], ["down", "行情 503（來源中斷）"], ["proxy502", "隧道回 HTML 502"], ["offline", "離線"],
 ];
 export const SESSIONS: [MockSession, string][] = [["open", "盤中"], ["pre_open", "盤前"], ["closing_auction", "收盤撮合"], ["post", "盤後"], ["closed", "休市"]];
 export type PushMock = "auto" | "unsupported" | "not_installed" | "default" | "granted" | "revoked" | "denied";
 export const PUSH_STATES: PushMock[] = ["auto", "unsupported", "not_installed", "default", "granted", "revoked", "denied"];
 
 const KEY = "sw-mock";
+export const URL_KEYS = ["mock", "session", "push", "empty", "extreme", "nodevices", "adjusted", "halfday"];
 type Saved = { scenario: Scenario; flags: MockFlags; push: PushMock };
 let scenario: Scenario = "none";
 let push: PushMock = "granted";
@@ -43,13 +44,17 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let downUntil = 0;
 
 export function installMock() {
-  const saved = load();
   const u = new URLSearchParams(location.search);
-  Object.assign(flags, saved.flags ?? {});
+  // 網址上有任何 mock 參數 → 完全依網址（沒寫的回到預設）；沒有 → 沿用同分頁上次在面板選的狀態
+  const fromUrl = URL_KEYS.some((k) => u.has(k));
+  const saved: Partial<Saved> = fromUrl ? {} : load();
+  Object.assign(flags, DEFAULT_FLAGS, saved.flags ?? {});
   if (u.get("session")) flags.session = u.get("session") as MockSession;
-  if (u.get("empty")) flags.empty = u.get("empty") === "1";
-  if (u.get("extreme")) flags.extreme = u.get("extreme") === "1";
-  if (u.get("nodevices")) flags.noDevices = u.get("nodevices") === "1";
+  if (u.has("empty")) flags.empty = u.get("empty") === "1";
+  if (u.has("extreme")) flags.extreme = u.get("extreme") === "1";
+  if (u.has("nodevices")) flags.noDevices = u.get("nodevices") === "1";
+  if (u.has("adjusted")) flags.adjusted = u.get("adjusted") === "1";
+  if (u.has("halfday")) flags.halfDay = u.get("halfday") === "1";
   push = (u.get("push") as PushMock) || saved.push || "granted";
   resetDb();
   mock.setScenario((u.get("mock") as Scenario) || saved.scenario || "none");
@@ -77,6 +82,7 @@ export function installMock() {
     if (scenario === "down" && !write && /^\/(quotes|overview|intraday|bars)/.test(path)) { downUntil = Date.now() + 1; return json(fail(503, "UPSTREAM_UNAVAILABLE", "行情來源暫時無法使用")); }
     if (scenario === "validation" && write && path !== "/alerts/preview") { once(); return json(fail(422, "VALIDATION_FAILED", "有欄位需要修正", [{ field: "rule.value", reason: "（模擬）超出漲停價" }, { field: "note", reason: "（模擬）備註含有不支援的字元" }, { field: "name", reason: "（模擬）名稱重複" }])); }
     if (scenario === "version" && (method === "PATCH" || method === "PUT" || /\/(pause|resume)$/.test(path))) { once(); return json(fail(409, "VERSION_CONFLICT", "別台裝置已修改，請重新載入後再試")); }
+    if (scenario === "proxy502" && !write && /^\/(quotes|overview|intraday|bars)/.test(path)) return new Response("<!DOCTYPE html><html><head><title>502 Bad Gateway</title></head><body><h1>502 Bad Gateway</h1><p>(mock) tunnel origin unreachable</p></body></html>", { status: 502, headers: { "Content-Type": "text/html; charset=utf-8" } });
     void downUntil;
     return json(handle(method, path, query, body, headers));
   };

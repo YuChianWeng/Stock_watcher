@@ -11,6 +11,24 @@ import { kd, macd, rsi, sma, type Series } from "../lib/indicators";
 import { fmtInt, fmtPct, fmtPrice, fmtSigned, fmtTwdShort, hhmm, ymd } from "../lib/fmt";
 import { ic } from "./icons";
 
+/**
+ * 分時時間軸刻度（契約 F-8：不硬編開收盤時間）：開盤、其後每個整點、收盤；
+ * 文字由 start＋分鐘偏移以 Asia/Taipei 格式化。離收盤不到 45 分鐘的整點略過，避免和收盤標籤重疊。
+ */
+export function sessionTicks(start: string, end: string): { label: string; minute: number }[] {
+  const t0 = Date.parse(start), t1 = Date.parse(end);
+  if (!Number.isFinite(t0) || !Number.isFinite(t1) || t1 <= t0) return [];
+  const total = Math.round((t1 - t0) / 60000);
+  const at = (m: number) => hhmm(new Date(t0 + m * 60000).toISOString());
+  const out = [{ label: at(0), minute: 0 }];
+  // 第一個整點（台北為 UTC+8，整點與 UTC 整點一致）
+  let m = Math.ceil(t0 / 3600000) * 60 - t0 / 60000;
+  if (m === 0) m = 60;
+  for (; m < total - 45 + 1e-9 && m < total; m += 60) out.push({ label: at(m), minute: m });
+  out.push({ label: at(total), minute: total });
+  return out;
+}
+
 export type IntradayData = { kind: "intraday"; points: IntradayPoint[]; prevClose: number | null; limitUp: number | null; limitDown: number | null; start: string; end: string; gaps: { from: string; to: string }[]; complete: boolean; isIndex: boolean };
 export type KlineData = { kind: "kline"; bars: Bar[]; isIndex: boolean; hasMoreBefore: boolean; interval: "1d" | "1w" | "1M" };
 export type ChartData = IntradayData | KlineData;
@@ -182,7 +200,7 @@ export class Chart {
     // 時間軸
     ctx.fillStyle = c["--ch-axis"]; ctx.textBaseline = "top";
     const total = this.sessionMinutes();
-    for (const [lab, m] of [["09:00", 0], ["10:00", 60], ["11:00", 120], ["12:00", 180], ["13:30", total]] as [string, number][]) {
+    for (const { label: lab, minute: m } of sessionTicks(d.start, d.end)) {
       ctx.textAlign = m === 0 ? "left" : m >= total ? "right" : "center"; ctx.fillText(lab, this.xOf(m), this.h - BOT + 4);
       if (m > 0 && m < total) { ctx.strokeStyle = c["--ch-grid"]; ctx.beginPath(); ctx.moveTo(Math.round(this.xOf(m)) + 0.5, p.top); ctx.lineTo(Math.round(this.xOf(m)) + 0.5, p.top + p.h); ctx.stroke(); }
     }

@@ -34,7 +34,7 @@ async function start() {
 
 function registerSW() {
   if (!("serviceWorker" in navigator) || import.meta.env.DEV || import.meta.env.MODE === "preview") return;
-  navigator.serviceWorker.register(import.meta.env.BASE_URL + "sw.js", { scope: import.meta.env.BASE_URL }).then((reg) => {
+  navigator.serviceWorker.register(import.meta.env.BASE_URL + "sw.js", { scope: import.meta.env.BASE_URL, updateViaCache: "none" }).then((reg) => {
     const ready = () => { S.updateReady = true; emit("update"); };
     if (reg.waiting && navigator.serviceWorker.controller) ready();
     reg.addEventListener("updatefound", () => { const w = reg.installing; w?.addEventListener("statechange", () => { if (w.state === "installed" && navigator.serviceWorker.controller) ready(); }); });

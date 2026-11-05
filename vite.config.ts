@@ -1,4 +1,7 @@
 import { defineConfig, loadEnv } from "vite";
+import { resolve } from "node:path";
+// @ts-expect-error 純 JS 建置腳本
+import { writeSw } from "./scripts/sw-build.mjs";
 
 // 頁面在 /stocks，API 在 /api/watch（FRONTEND-CONTRACT §0 F-1）。
 //   npm run dev        → 使用 mocks/（瀏覽器內攔截 fetch，不需要後端）
@@ -9,6 +12,11 @@ export default defineConfig(({ mode }) => {
   return {
     base: "/stocks/",
     plugins: [{
+      // 每次建置把 build id 與 shell 檔案清單寫進 dist/sw.js（public 已複製完成後才執行）
+      name: "stocks-sw-version",
+      apply: "build",
+      closeBundle() { if (mode !== "preview") { const { id, files } = writeSw(resolve(process.cwd(), "dist")); this.info?.(`sw.js build ${id}, ${files.length} shell files`); } },
+    }, {
       name: "stocks-no-slash",
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
